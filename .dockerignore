@@ -1,0 +1,15 @@
+.venv
+venv
+__pycache__
+*.pyc
+.git
+.github
+site
+.uploads
+docs/converted/*
+!docs/converted/.gitkeep
+docs/assets/converted/*
+!docs/assets/converted/.gitkeep
+*.log
+.pytest_cache
+.mypy_cache

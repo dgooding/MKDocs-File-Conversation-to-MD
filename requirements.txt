@@ -1,0 +1,28 @@
+# --- MkDocs site ---
+mkdocs>=1.6.1,<2
+mkdocs-material>=9.5.0
+pymdown-extensions>=10.14
+mkdocs-glightbox>=0.4.0
+
+# --- Conversion API ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+python-multipart>=0.0.20
+aiofiles>=24.1.0
+
+# --- High-fidelity PDF (styles + images + LLM-oriented MD) ---
+pymupdf>=1.25.5
+pymupdf4llm>=0.0.17
+
+# --- Broad file → Markdown (Office, HTML, etc.) ---
+# Prefer full extras in Docker (Python 3.12). On newer local Pythons, base markitdown may install without [all].
+markitdown>=0.1.1
+mammoth>=1.8.0
+python-pptx>=1.0.0
+openpyxl>=3.1.0
+beautifulsoup4>=4.12.0
+lxml>=5.0.0
+html2text>=2024.2.26
+pypdf>=5.0.0
+
+# --- Docker also installs: Pillow, markitdown[all] when resolvable ---
