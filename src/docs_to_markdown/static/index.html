@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Documents to Markdown</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <header class="page-header">
+        <h1>Documents to Markdown</h1>
+        <a href="/batch">Batch conversion</a>
+      </header>
+
+      <form id="conversion-form">
+        <label for="document">DOCX or PDF file</label>
+        <input id="document" name="file" type="file" accept=".docx,.pdf" required>
+        <button type="submit">Convert</button>
+      </form>
+
+      <p id="status" role="status" aria-live="polite"></p>
+
+      <div class="workspace">
+        <section>
+          <h2><label for="markdown">Markdown</label></h2>
+          <textarea id="markdown" rows="24"></textarea>
+        </section>
+        <section>
+          <h2>Preview</h2>
+          <div id="preview" class="preview" aria-live="polite"></div>
+        </section>
+      </div>
+      <button id="download" type="button" disabled>Download Markdown</button>
+    </main>
+  </body>
+</html>

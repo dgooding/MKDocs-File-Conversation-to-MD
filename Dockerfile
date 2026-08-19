@@ -1,54 +1,32 @@
-# Production image: full conversion stack for Railway / Render / Fly / HF Spaces
-FROM python:3.12-slim-bookworm
+# syntax=docker/dockerfile:1.7
+FROM ghcr.io/astral-sh/uv:0.12.5 AS uv
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PORT=8000 \
-    MPLCONFIGDIR=/tmp/matplotlib \
-    HOME=/tmp
+FROM python:3.12-slim-bookworm AS builder
+COPY --from=uv /uv /usr/local/bin/uv
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+COPY src/ ./src/
+RUN uv sync --frozen --no-dev --no-editable
 
-# System libs for PDF / OCR / Office extraction
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential \
-        curl \
-        tesseract-ocr \
-        tesseract-ocr-eng \
-        tesseract-ocr-osd \
-        poppler-utils \
-        libgl1 \
-        libglib2.0-0 \
-        libsm6 \
-        libxext6 \
-        libxrender1 \
-        libgomp1 \
-        fonts-dejavu-core \
-        fonts-liberation \
-        ffmpeg \
+FROM python:3.12-slim-bookworm AS runtime
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+COPY --from=builder /app/.venv /app/.venv
+RUN chown -R 0:0 /app && chmod -R g=u /app
 
-COPY requirements.txt .
-RUN pip install --upgrade pip \
-    && pip install -r requirements.txt \
-    && pip install "Pillow>=10.0.0" \
-    && (pip install "markitdown[all]>=0.1.1" || pip install "markitdown[docx,pptx,xlsx,pdf,audio,youtube-transcription]>=0.1.1" || true)
+ENV PATH="/app/.venv/bin:$PATH" \
+    HOME="/tmp" \
+    XDG_CACHE_HOME="/tmp/.cache" \
+    PYTHONDONTWRITEBYTECODE="1" \
+    PYTHONUNBUFFERED="1"
 
-COPY . .
+EXPOSE 8080
+USER 1001
 
-# Build MkDocs static site into /app/site
-RUN python -m mkdocs build --clean
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
 
-# Writable runtime dirs (ephemeral on free tiers)
-RUN mkdir -p /app/docs/converted /app/docs/assets/converted /app/.uploads /tmp \
-    && chmod -R 777 /app/docs/converted /app/docs/assets/converted /app/.uploads /tmp
-
-EXPOSE 8000
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -fsS "http://127.0.0.1:${PORT:-8000}/api/health" || exit 1
-
-# Railway/Render set PORT; bind all interfaces
-CMD ["sh", "-c", "exec python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
+CMD ["uvicorn", "docs_to_markdown.api:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]

@@ -1,18 +1,30 @@
+# Local Python environments and tooling
 .venv/
-venv/
+.tools/
 __pycache__/
 *.py[cod]
-*.egg-info/
+
+# Test and build output
 .pytest_cache/
-.mypy_cache/
-site/
-.uploads/
-.cache/
-*.log
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Local configuration and uploaded documents
+.env
+.env.*
+!.env.example
+incoming/
+uploads/
+output/
+artifacts/
+review/
+*.zip
+
+# Editor and operating-system files
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
-.env
-docs/converted/*
-!docs/converted/.gitkeep
-docs/assets/converted/*
-!docs/assets/converted/.gitkeep

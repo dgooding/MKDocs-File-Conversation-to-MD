@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docs to Markdown - Patent-Style Technical Disclosure</title>
+<style>
+  :root{--ink:#172321;--muted:#53615e;--paper:#eef1ed;--white:#fff;--line:#b9c5c1;--deep:#173b3a;--teal:#087c70;--teal-soft:#e0f1ec;--blue:#285d86;--blue-soft:#e5eef6;--gold:#9a6911;--gold-soft:#fff1ce;--red:#9e3d38;--red-soft:#f7e5e3;--violet:#66528c;--violet-soft:#eee9f7;--code:#122321}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;color:var(--ink);background:var(--paper);font:14px/1.48 Aptos,"Segoe UI",sans-serif;letter-spacing:0}
+  .sheet{width:min(1120px,calc(100% - 32px));margin:0 auto;background:var(--white)}
+  .inner{padding:0 52px}
+  .cover{min-height:9.55in;padding:.72in;display:flex;flex-direction:column;justify-content:space-between;color:white;background:var(--deep);position:relative;overflow:hidden;break-after:page}
+  .cover:before{content:"";position:absolute;inset:0;opacity:.15;background-image:linear-gradient(rgba(255,255,255,.25) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.25) 1px,transparent 1px);background-size:42px 42px}
+  .cover>*{position:relative;z-index:1}
+  .eyebrow{margin:0;color:#a9ddd4;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.16em}
+  .cover h1{max-width:780px;margin:23px 0 18px;font:700 55px/1.02 Georgia,serif;letter-spacing:0}
+  .subtitle{max-width:820px;color:#d9ebe6;font-size:20px;line-height:1.4}
+  .classification{display:inline-block;margin-top:23px;padding:8px 11px;border:1px solid #8dbcb5;color:#dcebe7;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+  .cover-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.2)}
+  .cover-grid div{padding:15px;background:rgba(9,38,36,.8)}
+  .cover-grid strong{display:block;color:#b9e4dc;font-size:16px}
+  .cover-grid span{display:block;margin-top:4px;color:#d9e7e4;font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+  h2,h3,h4{font-family:Georgia,serif;letter-spacing:0}
+  h2{margin:0;font-size:30px;line-height:1.08}
+  h3{margin:23px 0 8px;font-size:19px;line-height:1.15}
+  h4{margin:17px 0 6px;font-size:14px}
+  p{margin:7px 0}
+  a{color:var(--teal);text-underline-offset:2px}
+  code,pre{font-family:"Cascadia Code",Consolas,monospace}
+  code{padding:1px 3px;background:#e7eeeb;font-size:.92em}
+  .front{padding:38px 52px;break-after:page}
+  .front h2{margin-bottom:18px}
+  .notice{padding:15px 18px;border-left:5px solid var(--gold);background:var(--gold-soft)}
+  .toc{columns:2;column-gap:42px;margin-top:22px;padding:21px;border:1px solid var(--line)}
+  .toc ol{margin:0;padding-left:24px}
+  .toc li{margin:4px 0;break-inside:avoid}
+  .chapter{padding:34px 0 18px;break-before:page}
+  .chapter-head{display:grid;grid-template-columns:94px 1fr;gap:18px;padding-bottom:13px;margin-bottom:18px;border-bottom:2px solid var(--line)}
+  .chapter-no{color:var(--teal);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.11em}
+  .lead{max-width:850px;color:var(--muted);font-size:15px}
+  .para-no{float:left;min-width:48px;color:var(--teal);font:700 10px/1.5 "Cascadia Code",Consolas,monospace}
+  .disclosure{display:grid;grid-template-columns:132px 1fr;border:1px solid var(--line);margin:13px 0;background:#fff;break-inside:avoid}
+  .disclosure dt,.disclosure dd{margin:0;padding:8px 10px;border-bottom:1px solid var(--line)}
+  .disclosure dt{color:#284641;background:#e9f0ed;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .disclosure dt:last-of-type,.disclosure dd:last-of-type{border-bottom:0}
+  .badge{display:inline-block;padding:3px 6px;border:1px solid #8fc2b8;color:#075f55;background:var(--teal-soft);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em}
+  .badge.calc{color:var(--blue);border-color:#9cb9cf;background:var(--blue-soft)}
+  .badge.est{color:var(--gold);border-color:#d9b768;background:var(--gold-soft)}
+  .badge.assumed{color:var(--violet);border-color:#b7a7d0;background:var(--violet-soft)}
+  .badge.exp{color:var(--red);border-color:#d8a3a0;background:var(--red-soft)}
+  .grid-2,.grid-3,.grid-4{display:grid;gap:11px}
+  .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .card{padding:15px;border:1px solid var(--line);background:#fff;break-inside:avoid}
+  .card h3{margin-top:0}
+  .metric{border-top:4px solid var(--teal)}
+  .metric strong{display:block;color:var(--teal);font:700 27px/1 Georgia,serif}
+  .metric span{display:block;margin-top:7px;font-weight:800}
+  .metric small{display:block;margin-top:5px;color:var(--muted)}
+  .table-wrap{margin:12px 0;border:1px solid var(--line);overflow:hidden;break-inside:avoid}
+  table{width:100%;border-collapse:collapse;font-size:11.3px}
+  th,td{padding:8px 9px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+  th{color:#314945;background:#e7eeeb;font-size:9px;text-transform:uppercase;letter-spacing:.06em}
+  tbody tr:last-child td{border-bottom:0}
+  ul,ol{padding-left:21px}li{margin:3px 0}
+  pre{margin:11px 0;padding:14px;color:#d9e8e4;background:var(--code);border-left:5px solid var(--teal);font-size:10px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;break-inside:avoid}
+  .invariant{padding:12px 14px;margin:7px 0;border-left:4px solid var(--teal);background:var(--teal-soft);break-inside:avoid}
+  .warning{padding:13px 15px;margin:11px 0;border-left:5px solid var(--gold);background:var(--gold-soft);break-inside:avoid}
+  .danger{padding:13px 15px;margin:11px 0;border-left:5px solid var(--red);background:var(--red-soft);break-inside:avoid}
+  .figure{margin:16px 0;padding:15px;border:1px solid var(--line);background:#f9fbfa;break-inside:avoid}
+  .figure-title{margin:0 0 11px;color:#35504b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+  .flow{display:grid;grid-template-columns:1fr 28px 1fr 28px 1fr;align-items:stretch}
+  .flow.four{grid-template-columns:1fr 24px 1fr 24px 1fr 24px 1fr}
+  .node{min-height:78px;padding:12px;border:1px solid #a9bbb6;background:#fff}
+  .node strong{display:block;margin-bottom:5px;color:var(--teal);font-size:12px}
+  .node.blue{border-top:4px solid var(--blue)}.node.gold{border-top:4px solid var(--gold)}.node.red{border-top:4px solid var(--red)}.node.violet{border-top:4px solid var(--violet)}
+  .arrow{display:grid;place-items:center;color:var(--teal);font-size:21px;font-weight:800}
+  .branch{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .decision-node{padding:13px;border:2px solid var(--gold);background:var(--gold-soft);text-align:center;font-weight:800}
+  .caption{margin:9px 0 0;color:var(--muted);font-size:10px}
+  .state{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .state div{padding:10px;border:1px solid var(--line);background:#fff;text-align:center}
+  .state strong{display:block;color:var(--blue)}
+  .claim{margin:10px 0;padding:12px 14px;border-left:4px solid var(--blue);background:var(--blue-soft);break-inside:avoid}
+  .claim strong{color:var(--blue)}
+  .claim.dep{margin-left:23px;border-left-color:var(--teal);background:var(--teal-soft)}
+  .evidence-register td:first-child{white-space:nowrap;font-family:"Cascadia Code",Consolas,monospace}
+  .footer-note{margin-top:28px;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:10px}
+  @media(max-width:800px){.sheet{width:100%}.inner{padding:0 20px}.cover{padding:35px;min-height:680px}.cover h1{font-size:42px}.cover-grid,.grid-4,.grid-3,.grid-2,.flow,.flow.four,.state,.branch{grid-template-columns:1fr}.arrow{min-height:26px;transform:rotate(90deg)}.toc{columns:1}.chapter-head{grid-template-columns:1fr}.disclosure{grid-template-columns:1fr}.disclosure dt{border-bottom:0}}
+  @page{size:Letter;margin:.55in .55in .62in}
+  @media print{
+    body{background:#fff;font-size:8.7pt;line-height:1.36;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .sheet{width:100%}.inner{padding:0}.cover{min-height:9.55in;padding:.5in}.cover h1{font-size:40pt}.cover .subtitle{font-size:13pt}.cover-grid{grid-template-columns:repeat(3,1fr)}.cover-grid div{padding:11px}.front{padding:0}
+    .chapter{padding:0}.chapter-head{break-after:avoid}.card,.disclosure,.figure,.table-wrap,.invariant,.warning,.danger,.claim,pre{break-inside:avoid}
+    h2{font-size:21pt}h3{font-size:13.5pt}a{color:inherit;text-decoration:none}.footer-note{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <header class="cover">
+    <div>
+      <p class="eyebrow">Title Page · Technical disclosure · evidence-controlled specification</p>
+      <h1>System and Methods for Structure-Preserving Conversion of Heterogeneous Documents to Markdown</h1>
+      <p class="subtitle">Patent-style technical disclosure for the Docs-to-Markdown conversion platform, including preferred and alternative embodiments, processing pipelines, state behavior, operational constraints, validation evidence, and conservative claim formulations.</p>
+      <span class="classification">Technical record · not a legal opinion or patentability determination</span>
+    </div>
+    <div class="cover-grid">
+      <div><strong>Docs to Markdown v0.1.0</strong><span>Disclosed implementation</span></div>
+      <div><strong>2026-08-17</strong><span>Evidence cutoff</span></div>
+      <div><strong>36 passing tests</strong><span>Retained automated gate</span></div>
+      <div><strong>DOCX · PDF</strong><span>Implemented source formats</span></div>
+      <div><strong>FastAPI · Python 3.12</strong><span>Execution substrate</span></div>
+      <div><strong>Controlled internal pilot</strong><span>Release boundary</span></div>
+    </div>
+  </header>
+
+  <div class="front">
+    <h2>Disclosure Control and Interpretation</h2>
+    <div class="notice"><strong>Scope.</strong> This document describes the implementation present in the project workspace and its verified archive as of the evidence cutoff. It is not a user guide, release announcement, legal opinion, assertion of novelty, or representation that any claim is patentable. Formal claims are engineering claim candidates drafted to expose system boundaries for technical and legal review.</div>
+    <h3>Evidence vocabulary</h3>
+    <div class="table-wrap"><table><thead><tr><th>Label</th><th>Meaning in this disclosure</th></tr></thead><tbody>
+      <tr><td><span class="badge">Validated</span></td><td>Behavior directly asserted by a passing retained automated test or verified endpoint check.</td></tr>
+      <tr><td><span class="badge">Measured</span></td><td>Value obtained from direct instrumentation, byte counting, corpus inspection, or process observation.</td></tr>
+      <tr><td><span class="badge calc">Calculated</span></td><td>Value arithmetically derived from identified measured inputs.</td></tr>
+      <tr><td><span class="badge est">Estimated</span></td><td>Projection not yet established by a clean build or controlled measurement.</td></tr>
+      <tr><td><span class="badge assumed">Assumed</span></td><td>Environmental or operational precondition required by the design but not proven locally.</td></tr>
+      <tr><td><span class="badge exp">Experimental</span></td><td>Observed in a spike or rejected route and excluded from the preferred implementation.</td></tr>
+    </tbody></table></div>
+    <h3>Table of contents</h3>
+    <nav class="toc"><ol>
+      <li><a href="#abstract">Abstract</a></li><li><a href="#field">Technical Field</a></li><li><a href="#background">Background and Problem Statement</a></li><li><a href="#prior-art">Prior Art and Existing Approaches</a></li><li><a href="#objectives">System Objectives</a></li><li><a href="#invariants">Architectural Invariants</a></li><li><a href="#platform">Platform Architecture</a></li><li><a href="#data-flow">Data Flow Architecture</a></li><li><a href="#docx">DOCX Conversion Pipeline</a></li><li><a href="#pdf">PDF Conversion Pipeline</a></li><li><a href="#heading">Heading Inference Algorithms</a></li><li><a href="#tables">Table Reconstruction Logic</a></li><li><a href="#links">Hyperlink Recovery Mechanisms</a></li><li><a href="#images">Image Preservation Architecture</a></li><li><a href="#ocr">OCR Detection and Routing</a></li><li><a href="#rendering">Markdown Rendering System</a></li><li><a href="#api">API Contracts</a></li><li><a href="#batch">Batch Conversion Architecture</a></li><li><a href="#deployment">Deployment Design</a></li><li><a href="#container">Containerization Strategy</a></li><li><a href="#openshift">OpenShift Architecture</a></li><li><a href="#reliability">Reliability Model</a></li><li><a href="#errors">Error Handling Framework</a></li><li><a href="#tests">Test Methodology</a></li><li><a href="#corpus">Corpus Evaluation Methodology</a></li><li><a href="#fidelity">Fidelity Validation Framework</a></li><li><a href="#dependencies">Dependency Minimization Research</a></li><li><a href="#runtime">Runtime Efficiency Analysis</a></li><li><a href="#security">Security Model</a></li><li><a href="#recovery">Recovery and Rollback Strategy</a></li><li><a href="#governance">Governance and Development Rules</a></li><li><a href="#risks">Engineering Risks</a></li><li><a href="#constraints">Known Constraints</a></li><li><a href="#results">Experimental Results</a></li><li><a href="#future">Future Research Directions</a></li><li><a href="#claims">Formal Claims</a></li><li><a href="#conclusion">Conclusions</a></li><li><a href="#evidence">Evidence Register</a></li>
+    </ol></nav>
+  </div>
+
+  <main class="inner">
+    <section class="chapter" id="abstract">
+      <div class="chapter-head"><span class="chapter-no">01 · Abstract</span><div><h2>Abstract</h2><p class="lead">A bounded, structure-preserving conversion apparatus for translating Office Open XML and Portable Document Format streams into self-contained Markdown while maintaining invocation-channel parity.</p></div></div>
+      <p><span class="para-no">[0001]</span>The disclosure provides a stateless processing system configured to accept byte sequences identified as DOCX or PDF, route each sequence to one authoritative conversion function for its format, preserve recoverable hierarchy, inline styling, links, tables, and raster imagery, and expose the resulting Markdown through direct function calls, HTTP contracts, editable preview rendering, and isolated batch packaging. The preferred embodiment uses an in-memory DOCX normalization stage followed by MarkItDown 0.1.7 and a geometry-aware PDF pipeline based on pdfplumber, pypdfium2, and Pillow. Image-only PDF pages are preserved visually and may be subjected to an optional Tesseract adapter when a two-factor scan heuristic is satisfied.</p>
+      <p><span class="para-no">[0001A]</span>In one embodiment, the apparatus comprises a format-routing boundary, format-specific conversion authorities, a constrained rendering boundary, and an archive-producing batch boundary. The processing system is configured to preserve a common Markdown contract while selecting different semantic recovery mechanisms for each source information model. The conversion engine maintains invocation parity by preventing delivery adapters from implementing independent transformations.</p>
+      <p><span class="para-no">[0002]</span>The system distinguishes technical completion from human fidelity. Exact direct/API and direct/batch equality are enforced, while fidelity assertions require source-to-output inspection. Repeated page furniture is removed by document-level normalization and counting; hyperlinks are recovered through character-to-annotation rectangle overlap; images are rendered, cropped, normalized to CSS pixel dimensions, content-hashed, deduplicated, and embedded as data URIs. Batch failures are localized to per-file terminal states and successful outputs are emitted with a manifest in an in-memory ZIP archive.</p>
+      <p><span class="para-no">[0003]</span><span class="badge">Measured</span> The retained suite contains 36 passing tests. <span class="badge">Measured</span> Eight pilot PDFs comprise 45 pages, 45 unique source images, 24 unique source URIs, and eight detected table regions. <span class="badge">Measured</span> The current workspace occupies 384.23 MiB; 130.61 MiB is attributable to a measured MarkItDown-exclusive candidate dependency closure. <span class="badge calc">Calculated</span> Subtracting that closure from the measured 213.65 MiB environment yields an 83.04 MiB residual, not yet established by a clean build.</p>
+    </section>
+
+    <section class="chapter" id="field">
+      <div class="chapter-head"><span class="chapter-no">02 · Field</span><div><h2>Technical Field</h2><p class="lead">Document interpretation, layout recovery, semantic normalization, safe rendering, and stateless conversion-service deployment.</p></div></div>
+      <p><span class="para-no">[0004]</span>The subject matter lies at the intersection of document compiler design, computational document analysis, geometric layout interpretation, content-addressed asset processing, API contract engineering, and containerized service execution. It concerns transformation from layout-bearing or semantically styled source representations into a linear, human-editable Markdown representation.</p>
+      <p><span class="para-no">[0005]</span>The DOCX path treats Office Open XML as a semantic package that may nevertheless encode headings only through direct visual formatting. The PDF path treats a page description as positioned characters, annotations, grids, and image objects rather than as a preexisting paragraph tree. The two formats therefore share an output contract but do not share an extraction algorithm.</p>
+      <dl class="disclosure"><dt>Purpose</dt><dd>Recover useful document semantics without claiming pixel equivalence.</dd><dt>Mechanism</dt><dd>Format-specific extraction followed by a common Markdown and invocation contract.</dd><dt>Operational constraint</dt><dd>Only DOCX and PDF suffixes are accepted by the implemented API.</dd><dt>Validation evidence</dt><dd><span class="badge">Validated</span> Direct, API, batch, rendering, scanned-page, and deployment-policy tests.</dd></dl>
+    </section>
+
+    <section class="chapter" id="background">
+      <div class="chapter-head"><span class="chapter-no">03 · Background</span><div><h2>Background and Problem Statement</h2><p class="lead">Markdown is structurally sparse; DOCX and PDF encode meaning through incompatible combinations of semantics and visual arrangement.</p></div></div>
+      <p><span class="para-no">[0006]</span>A DOCX file may contain explicit Heading styles, list numbering definitions, relationships, tables, and embedded media. It may instead contain visually apparent headings represented as ordinary paragraphs with bold and enlarged runs. A direct semantic converter preserves the first class and flattens the second unless preprocessing promotes cautiously inferred headings.</p>
+      <p><span class="para-no">[0007]</span>A PDF generally contains no normative paragraph, heading, or table tree. Reading order must be inferred from character geometry, font metrics, grid intersections, annotations, and page-object locations. Page headers and footers recur but are not intrinsically marked as furniture. Images may repeat on every page. A visually dominant scan can contain almost no text objects.</p>
+      <p><span class="para-no">[0008]</span>The conversion problem is therefore not a serialization change. It is a lossy compilation problem in which the target grammar cannot represent pagination, exact typography, floating placement, merged-cell topology, or arbitrary page geometry. Correctness requires explicit invariants: preserved textual content, useful hierarchy, recoverable references, stable output across invocation channels, controlled failure, and honest separation between automated structure checks and human fidelity judgment.</p>
+      <div class="warning"><strong>Problem boundary.</strong> The implementation does not promise pixel equivalence, general optical understanding, semantic interpretation of charts, password decryption, digital-signature preservation, or universal reading-order recovery.</div>
+    </section>
+
+    <section class="chapter" id="prior-art">
+      <div class="chapter-head"><span class="chapter-no">04 · Context</span><div><h2>Prior Art and Existing Approaches</h2><p class="lead">Approach categories are discussed for engineering context; no legal conclusion about prior art, novelty, or obviousness is made.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Approach category</th><th>Typical mechanism</th><th>Observed or reasoned limitation relative to this implementation</th></tr></thead><tbody>
+        <tr><td>General-purpose format dispatchers</td><td>Detect input type, invoke a converter, emit text/Markdown</td><td>Broad detection can introduce dependencies irrelevant to a two-format bounded service. The current MarkItDown dependency pulls Magika and its numerical inference closure.</td></tr>
+        <tr><td>DOCX semantic converters</td><td>Transform OOXML styles and relationships to HTML or Markdown</td><td>Visually formatted Normal paragraphs remain semantically flat unless a conservative preprocessing stage promotes them.</td></tr>
+        <tr><td>PDF text extractors</td><td>Read content streams and order glyphs</td><td>Plain extraction does not reconstruct heading hierarchy, tables, links, images, repeated furniture, or scanned-page fallback.</td></tr>
+        <tr><td>Full-page OCR</td><td>Rasterize every page and recognize text</td><td>Duplicates an existing text layer, increases latency, may degrade exact native text, and introduces provider/runtime dependencies.</td></tr>
+        <tr><td>PDF-to-DOCX intermediate conversion</td><td>Reconstruct Word layout, then convert Word to Markdown</td><td><span class="badge exp">Experimental</span> The tested Word COM route timed out after 120 seconds on a five-page PDF, produced no DOCX, and left a WINWORD process requiring cleanup.</td></tr>
+        <tr><td>Model-heavy document intelligence</td><td>Use learned layout/OCR models</td><td><span class="badge exp">Experimental</span> Marker was parked because its Windows path introduced GTK/Pango dependencies and materially enlarged the environment.</td></tr>
+      </tbody></table></div>
+      <p><span class="para-no">[0009]</span>In a preferred implementation, native semantic extraction is selected before OCR or visual fallback. This ordering is not claimed as novel; it is a documented engineering choice validated against the retained corpus and operational constraints.</p>
+    </section>
+
+    <section class="chapter" id="objectives">
+      <div class="chapter-head"><span class="chapter-no">05 · Objectives</span><div><h2>System Objectives</h2><p class="lead">The objectives define observable engineering outcomes rather than commercial attributes.</p></div></div>
+      <div class="grid-2">
+        <div class="card"><h3>Semantic objectives</h3><ul><li>Preserve textual content and Unicode.</li><li>Recover heading hierarchy conservatively.</li><li>Preserve emphasis, list sequence, links, table cell values, and raster imagery where supported.</li><li>Keep conversion diagnostics out of published Markdown.</li></ul></div>
+        <div class="card"><h3>Systems objectives</h3><ul><li>Maintain one authoritative converter per format.</li><li>Make API and batch outputs exactly equal to direct conversion.</li><li>Isolate optional OCR and per-file batch failures.</li><li>Operate without persistent upload or output storage.</li></ul></div>
+      </div>
+      <dl class="disclosure"><dt>Correctness</dt><dd>Structural assertions and byte-for-byte invocation parity.</dd><dt>Fidelity</dt><dd>Human source/output comparison; not inferred from automated ratings.</dd><dt>Efficiency</dt><dd>Bounded dependencies, in-memory data paths, and measured rather than assumed footprint.</dd><dt>Recovery</dt><dd>Reproducible lockfile, verified backup, and checkpoint-specific rollback.</dd><dt>Non-objective</dt><dd>Pixel-perfect reproduction, arbitrary-format support, persistence, authentication, or distributed job execution.</dd></dl>
+    </section>
+
+    <section class="chapter" id="invariants">
+      <div class="chapter-head"><span class="chapter-no">06 · Invariants</span><div><h2>Architectural Invariants</h2><p class="lead">These properties constrain all preferred embodiments and current extension work.</p></div></div>
+      <div class="invariant"><strong>I-1: Format authority.</strong> <code>convert_docx(bytes) -&gt; str</code> and <code>convert_pdf(bytes) -&gt; str</code> are the sole conversion authorities. HTTP and batch layers delegate; they do not reimplement format semantics.</div>
+      <div class="invariant"><strong>I-2: Interface parity.</strong> For the same input byte sequence, API and batch Markdown must equal the direct function result exactly.</div>
+      <div class="invariant"><strong>I-3: Native semantics first.</strong> Native OOXML and PDF geometry precede OCR; targeted OCR precedes full-page visual fallback.</div>
+      <div class="invariant"><strong>I-4: Optional-provider isolation.</strong> Missing Tesseract does not prevent DOCX or born-digital PDF conversion.</div>
+      <div class="invariant"><strong>I-5: Diagnostic separation.</strong> Status, duration, error detail, and review state reside in API or manifest metadata, not published Markdown.</div>
+      <div class="invariant"><strong>I-6: Evidence separation.</strong> Technical completion is not human fidelity approval.</div>
+      <div class="invariant"><strong>I-7: Checkpoint execution.</strong> One approved checkpoint is implemented and validated before another begins.</div>
+      <p><span class="para-no">[0010]</span>These invariants reduce semantic drift by making converter functions the computational center and the surrounding API, UI, batch, and deployment layers adapters rather than competing implementations.</p>
+    </section>
+
+    <section class="chapter" id="platform">
+      <div class="chapter-head"><span class="chapter-no">07 · Architecture</span><div><h2>Platform Architecture</h2><p class="lead">A stateless modular monolith with format-specific engines and thin delivery adapters.</p></div></div>
+      <div class="figure"><p class="figure-title">Figure 1. System architecture</p>
+        <div class="flow four"><div class="node blue"><strong>Clients</strong>Browser UI<br>HTTP caller<br>Test harness</div><div class="arrow">→</div><div class="node"><strong>FastAPI boundary</strong>Validation<br>Dispatch<br>Error mapping</div><div class="arrow">→</div><div class="node gold"><strong>Conversion core</strong>DOCX authority<br>PDF authority<br>OCR adapter</div><div class="arrow">→</div><div class="node violet"><strong>Output services</strong>Markdown renderer<br>ZIP/manifest<br>Streaming response</div></div>
+        <p class="caption">The browser and batch interfaces terminate at the same converter functions; there is no alternate UI-specific conversion path.</p>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Module</th><th>Computational ownership</th><th>Excluded responsibility</th></tr></thead><tbody>
+        <tr><td><code>converter.py</code></td><td>DOCX heading preprocessing and conversion</td><td>HTTP, preview, ZIP policy</td></tr>
+        <tr><td><code>pdf_converter.py</code></td><td>PDF geometry, semantics, tables, links, images, OCR routing</td><td>HTTP status codes</td></tr>
+        <tr><td><code>ocr_adapter.py</code></td><td>Provider detection and image-to-text invocation</td><td>Page classification</td></tr>
+        <tr><td><code>api.py</code></td><td>Routes, limits, HTTP error translation, static serving</td><td>Format algorithms</td></tr>
+        <tr><td><code>batch_converter.py</code></td><td>Per-file state, naming, metrics, archive</td><td>Format algorithms</td></tr>
+        <tr><td><code>renderer.py</code></td><td>CommonMark-to-HTML preview</td><td>Source extraction</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="chapter" id="data-flow">
+      <div class="chapter-head"><span class="chapter-no">08 · Flow</span><div><h2>Data Flow Architecture</h2><p class="lead">Source bytes remain in process memory from upload through conversion and response construction.</p></div></div>
+      <div class="figure"><p class="figure-title">Figure 2. End-to-end data flow</p>
+        <div class="flow four"><div class="node"><strong>Multipart bytes</strong>Filename<br>Content bytes</div><div class="arrow">→</div><div class="node blue"><strong>Boundary validation</strong>Suffix allowlist<br>Non-empty check<br>Batch limits</div><div class="arrow">→</div><div class="node gold"><strong>Format computation</strong>DOCX semantic stream or PDF geometry graph</div><div class="arrow">→</div><div class="node violet"><strong>Response materialization</strong>JSON Markdown<br>HTML preview<br>ZIP stream</div></div>
+        <p class="caption">No database, object store, request queue, or durable job state participates in the implemented flow.</p>
+      </div>
+      <p><span class="para-no">[0011]</span>Single-file upload content is fully read by <code>await file.read()</code>. DOCX uses <code>BytesIO</code> for parsing and optional reserialization. PDF bytes are opened by pdfplumber and pypdfium2. Batch input tuples, Markdown outputs, and the DEFLATE archive are all held in memory. This design provides deterministic cleanup at request termination but makes peak memory proportional to source, rendered pages, embedded data URIs, and output archive size.</p>
+      <dl class="disclosure"><dt>Rationale</dt><dd>Avoid persistence and simplify privacy/cleanup behavior.</dd><dt>Tradeoff</dt><dd>No resumability, durable progress, or back-pressure queue.</dd><dt>Failure mode</dt><dd>Process termination loses the entire in-flight request; large raster assets can exhaust memory.</dd><dt>Validation</dt><dd><span class="badge">Validated</span> Functional paths and limits; <span class="badge assumed">Assumed</span> production concurrency and peak-memory suitability.</dd></dl>
+    </section>
+
+    <section class="chapter" id="docx">
+      <div class="chapter-head"><span class="chapter-no">09 · DOCX</span><div><h2>DOCX Conversion Pipeline</h2><p class="lead">Semantic styles are preserved, while cautiously inferred visual headings are promoted in an in-memory copy.</p></div></div>
+      <div class="figure"><p class="figure-title">Figure 3. DOCX processing pipeline</p>
+        <div class="flow four"><div class="node"><strong>DOCX bytes</strong>ZIP-based OOXML package</div><div class="arrow">→</div><div class="node blue"><strong>python-docx parse</strong>Paragraphs<br>Runs<br>Styles<br>Numbering</div><div class="arrow">→</div><div class="node gold"><strong>Heading normalization</strong>Promote inferred Heading 1–3 in temporary document</div><div class="arrow">→</div><div class="node violet"><strong>MarkItDown 0.1.7</strong>Markdown<br>Complete image data URIs</div></div>
+        <p class="caption">The source file is not modified. If no inferred heading is found, the original bytes are returned through a new in-memory stream.</p>
+      </div>
+      <dl class="disclosure"><dt>Purpose</dt><dd>Preserve semantic DOCX content while recovering selected hierarchy encoded only through direct formatting.</dd><dt>Mechanism</dt><dd>Parse, infer, assign semantic styles, clear redundant heading-run formatting, serialize, and convert.</dd><dt>Implementation</dt><dd><code>_prepare_docx</code> and <code>convert_docx</code>; MarkItDown plugins disabled; DOCX MIME and extension supplied; <code>keep_data_uris=True</code>.</dd><dt>Rationale</dt><dd>Reuse a validated semantic engine and add only a narrow, reversible preprocessor.</dd><dt>Tradeoffs</dt><dd>Image data URIs increase Markdown size; conservative inference favors false negatives.</dd><dt>Limitations</dt><dd>Exact typography, page layout, color, floating objects, and complex Office-native objects are outside Markdown.</dd><dt>Evidence</dt><dd><span class="badge">Validated</span> Headings, emphasis, lists, Unicode, links, tables, complete embedded PNG bytes, empty-input rejection, API parity, and batch parity.</dd></dl>
+    </section>
+
+    <section class="chapter" id="pdf">
+      <div class="chapter-head"><span class="chapter-no">10 · PDF</span><div><h2>PDF Conversion Pipeline</h2><p class="lead">A two-pass, geometry-aware extraction process combines PDF object semantics with deterministic page rasterization.</p></div></div>
+      <div class="figure"><p class="figure-title">Figure 4. PDF processing pipeline</p>
+        <div class="flow four"><div class="node"><strong>PDF bytes</strong>pdfplumber object model<br>pdfium renderer</div><div class="arrow">→</div><div class="node blue"><strong>Pass 1</strong>Collect normalized header/footer candidates across pages</div><div class="arrow">→</div><div class="node gold"><strong>Pass 2</strong>Classify lines, lists, tables, links, images; conditionally OCR</div><div class="arrow">→</div><div class="node violet"><strong>Assembly</strong>Sort by vertical coordinate<br>Insert page comments<br>Join Markdown blocks</div></div>
+        <p class="caption">If native extraction throws or produces blank Markdown, the current preferred embodiment invokes a MarkItDown PDF fallback. That fallback is planned for removal but remains implemented at the evidence cutoff.</p>
+      </div>
+      <p><span class="para-no">[0012]</span>Pass one scans text lines whose top coordinate is within the top ten percent or whose bottom coordinate lies below ninety-two percent of page height. Text is lowercased, whitespace-collapsed, and digit runs replaced by <code>#</code>. A normalized string observed at least twice becomes repeated furniture.</p>
+      <p><span class="para-no">[0013]</span>Pass two computes median visible character size per page, renders the corresponding page at scale two, and calls <code>_page_items</code>. The item extractor excludes repeated furniture and table-overlapping lines, classifies list and heading forms, merges compatible paragraph lines, adds normalized tables, crops image objects, and emits blocks sorted by their top coordinate. From page two onward, <code>&lt;!-- page N --&gt;</code> marks source page boundaries without exposing conversion diagnostics.</p>
+      <dl class="disclosure"><dt>Tradeoff</dt><dd>Heuristics provide inspectable behavior but cannot solve arbitrary reading order or merged layouts.</dd><dt>Failure scenario</dt><dd>Malformed/encrypted documents or render/parser divergence may reach the MarkItDown fallback; current code suppresses the native exception.</dd><dt>Validation evidence</dt><dd><span class="badge">Validated</span> Synthetic hierarchy, links, table normalization, bullets, image deduplication and sizing, scans, optional OCR routing, direct/API parity.</dd></dl>
+    </section>
+
+    <section class="chapter" id="heading">
+      <div class="chapter-head"><span class="chapter-no">11 · Algorithms</span><div><h2>Heading Inference Algorithms</h2><p class="lead">Separate algorithms are required because DOCX exposes paragraph semantics while PDF exposes positioned glyphs.</p></div></div>
+      <h3>DOCX direct-format inference</h3>
+      <pre>if empty or style begins Heading/Title: no inference
+if style begins List or numbering exists: no inference
+if every visible run is not explicitly bold: no inference
+S = maximum explicit run font size in points
+if S &gt;= 17: Heading 1
+else if S &gt;= 15: Heading 2
+else if length(text) &lt;= 60 and final character not in : . ; ! ?: Heading 3
+else: no inference</pre>
+      <p><span class="para-no">[0014]</span>Promotion changes only the temporary document. Each run in a promoted paragraph has bold, size, and color reset to inherited style values, preventing direct formatting from being emitted twice by the downstream semantic converter.</p>
+      <h3>PDF geometric inference</h3>
+      <p><span class="para-no">[0015]</span>Let <em>B</em> be the median visible character size on a page. An extra-large line whose size is at least <code>max(18, 1.55B)</code> becomes level one only on the first page when no heading item has been emitted; otherwise it becomes level two. A left-aligned line no longer than ninety characters and lacking terminal <code>.;!?</code> becomes level two when size is at least <code>1.15B</code>, or level three when bold and size is at least <code>0.95B</code>.</p>
+      <dl class="disclosure"><dt>Rationale</dt><dd>Median page size is robust to a small number of title outliers; punctuation and alignment reduce false-positive prose headings.</dd><dt>Tradeoff</dt><dd>Page-relative statistics may flatten document-wide hierarchy; font-name bold detection depends on embedded font naming.</dd><dt>Limitation</dt><dd>No learned classifier, style-history model, or multi-line heading merger exists.</dd><dt>Evidence</dt><dd><span class="badge">Validated</span> Semantic and visually inferred DOCX headings; H1/H2 PDF fixture headings and exclusions for labels/list items.</dd></dl>
+    </section>
+
+    <section class="chapter" id="tables">
+      <div class="chapter-head"><span class="chapter-no">12 · Tables</span><div><h2>Table Reconstruction Logic</h2><p class="lead">DOCX tables are semantic; PDF tables are geometric regions normalized into a rectangular Markdown grammar.</p></div></div>
+      <p><span class="para-no">[0016]</span>DOCX table conversion is delegated to the current semantic engine after heading preprocessing. PDF table extraction calls <code>page.find_tables()</code>, records bounding boxes, excludes ordinary line extraction within those boxes, and passes extracted rows to <code>_table_markdown</code>.</p>
+      <ol><li>Determine maximum row width and pad shorter rows.</li><li>Collapse internal whitespace and escape literal pipe characters.</li><li>Remove columns empty across all rows.</li><li>If at least four columns remain and every row has no more than two populated cells, split at the midpoint and collapse each half into a two-column representation.</li><li>If one column remains, produce a blockquote callout.</li><li>Flush multi-cell row segments as Markdown tables; represent intervening one-cell rows as bold section labels.</li><li>For a one-row multi-column region, synthesize an empty header and retain the row as data.</li></ol>
+      <dl class="disclosure"><dt>Purpose</dt><dd>Preserve cell content and readable grouping under Markdown's rectangular table constraint.</dd><dt>Rationale</dt><dd>Sparse PDF grids frequently encode field/value layouts or callouts rather than conventional tabular headers.</dd><dt>Tradeoff</dt><dd>Cell spans, border weights, column widths, and precise visual topology are flattened.</dd><dt>Validation</dt><dd><span class="badge">Validated</span> Standard two-column output, sparse six-column normalization, single-column callout conversion, one-row fallback, and pipe escaping by implementation.</dd></dl>
+    </section>
+
+    <section class="chapter" id="links">
+      <div class="chapter-head"><span class="chapter-no">13 · Links</span><div><h2>Hyperlink Recovery Mechanisms</h2><p class="lead">DOCX relationships are semantic; PDF links are spatial annotations requiring geometric assignment to characters.</p></div></div>
+      <p><span class="para-no">[0017]</span>For each PDF character, the converter constructs an axis-aligned rectangle from <code>x0</code>, <code>x1</code>, <code>top</code>, and <code>bottom</code>. It compares the rectangle with each page hyperlink annotation containing a URI. Any non-disjoint pair associates the character with the annotation URI.</p>
+      <p><span class="para-no">[0018]</span>Consecutive characters sharing bold, italic, and URI state are grouped. Formatting is applied to the group and then wrapped as <code>[text](uri)</code>. URIs are percent-encoded while preserving standard scheme, path, query, fragment, and email punctuation. A mailto annotation whose visible text is angle-bracketed is normalized to avoid redundant brackets.</p>
+      <div class="table-wrap"><table><thead><tr><th>Mechanism</th><th>Strength</th><th>Failure mode</th></tr></thead><tbody><tr><td>DOCX relationship extraction</td><td>Explicit source relationship and anchor text</td><td>Unsupported or malformed relationship may be dropped by the underlying converter</td></tr><tr><td>PDF rectangle overlap</td><td>Recovers annotation targets independent of visible URL text</td><td>Oversized or misregistered rectangles can associate neighboring characters</td></tr><tr><td>Preview rendering</td><td>markdown-it-py rejects unsafe link schemes</td><td>Produced Markdown remains editable data and is not itself a security boundary</td></tr></tbody></table></div>
+      <p><span class="para-no">[0019]</span><span class="badge">Validated</span> Tests cover HTTPS and mailto PDF links, an external DOCX hyperlink, exact API parity, and absence of rendered <code>javascript:</code> href attributes.</p>
+    </section>
+
+    <section class="chapter" id="images">
+      <div class="chapter-head"><span class="chapter-no">14 · Images</span><div><h2>Image Preservation Architecture</h2><p class="lead">Images are embedded in the Markdown itself to avoid a second asset publication protocol.</p></div></div>
+      <h3>DOCX image path</h3><p>MarkItDown is invoked with <code>keep_data_uris=True</code>. The retained test decodes a known embedded PNG and requires the complete base64 payload; a prior truncating form ending in <code>base64...</code> is explicitly rejected.</p>
+      <h3>PDF image path</h3>
+      <ol><li>Render the page to RGB at scale two.</li><li>Map PDF-space image bounds to raster coordinates using independent horizontal and vertical scale factors.</li><li>Reject zero-area crops.</li><li>Crop the rendered page and resize to <code>round(width * 96/72)</code> by <code>round(height * 96/72)</code> using Lanczos resampling.</li><li>Encode optimized PNG bytes.</li><li>Compute SHA-256 and suppress a byte-identical image already emitted anywhere in the document.</li><li>Base64-encode and emit <code>![Image from page N](data:image/png;base64,...)</code>.</li></ol>
+      <dl class="disclosure"><dt>Rationale</dt><dd>Self-contained Markdown survives download, ZIP packaging, and isolated preview without asset-path coordination.</dd><dt>Tradeoff</dt><dd>Base64 increases representation size and browser decode work; deduplication intentionally removes repeated logos.</dd><dt>Limitation</dt><dd>PDF images are raster crops of rendered pages, not necessarily original encoded streams; generic alt text does not describe content.</dd><dt>Evidence</dt><dd><span class="badge">Validated</span> Complete DOCX image bytes, one output for two identical PDF images, expected 53×53 CSS-pixel result, and scan-page visual preservation.</dd></dl>
+    </section>
+
+    <section class="chapter" id="ocr">
+      <div class="chapter-head"><span class="chapter-no">15 · OCR</span><div><h2>OCR Detection and Routing</h2><p class="lead">OCR is a conditional adapter, not a mandatory converter dependency.</p></div></div>
+      <div class="figure"><p class="figure-title">Figure 5. OCR decision tree</p>
+        <div class="decision-node">Visible native characters &lt; 40 AND maximum page-covering image ratio &gt; 0.55?</div>
+        <div class="branch" style="margin-top:12px"><div class="node blue"><strong>No</strong>Use native text, geometry, tables, links, and images. Do not call OCR.</div><div class="node gold"><strong>Yes</strong>Always preserve the visual image. Detect optional OCR adapter.</div></div>
+        <div class="branch" style="margin-top:12px"><div class="node"><strong>Provider available</strong>Render RGB page → Tesseract stdin/stdout → normalize OCR text → include with visual content.</div><div class="node red"><strong>Provider absent or fails</strong>Return visual content without searchable OCR text; unrelated conversion remains available.</div></div>
+        <p class="caption">The classifier requires both sparse native text and dominant image coverage; neither factor alone routes the page to OCR.</p>
+      </div>
+      <p><span class="para-no">[0020]</span><code>TesseractOCR.detect</code> checks <code>TESSERACT_CMD</code>, the process PATH, and three standard Windows installation locations. Candidate executables must return zero from <code>--version</code> within four seconds. Extraction serializes RGB input as PNG and invokes <code>tesseract stdin stdout -l eng --psm 6</code> with a sixty-second timeout. Nonzero exit, timeout, operating-system error, or empty output returns no text.</p>
+      <div class="warning"><strong>Evidence boundary.</strong> <span class="badge">Validated</span> Routing and graceful absence are tested with a fake provider and a missing executable. <span class="badge assumed">Assumed</span> Real Tesseract OCR quality is not validated because Tesseract is absent on the workstation.</div>
+    </section>
+
+    <section class="chapter" id="rendering">
+      <div class="chapter-head"><span class="chapter-no">16 · Rendering</span><div><h2>Markdown Rendering System</h2><p class="lead">Preview generation is distinct from conversion and is constrained to a safe CommonMark profile.</p></div></div>
+      <p><span class="para-no">[0021]</span>The renderer initializes <code>MarkdownIt("commonmark")</code> with raw HTML, automatic linkification, and typographic substitutions disabled, then enables table syntax. <code>render_markdown</code> is a pure string-to-string boundary. The API exposes this through <code>POST /api/render</code> with a Pydantic request model containing one Markdown string.</p>
+      <dl class="disclosure"><dt>Purpose</dt><dd>Provide a browser-review representation without allowing converted or edited Markdown to inject raw HTML.</dd><dt>Rationale</dt><dd>Conversion and rendering have different trust boundaries; generated Markdown remains editable and must be re-rendered under explicit policy.</dd><dt>Tradeoff</dt><dd>Legitimate source HTML is displayed as text; linkification and typographic transformation are intentionally absent.</dd><dt>Limitations</dt><dd>The renderer is not a general HTML sanitizer for arbitrary plugin output; safety depends on the configured parser profile.</dd><dt>Evidence</dt><dd><span class="badge">Validated</span> Headings, tables, embedded raster data images, blocked script tags, blocked JavaScript links, and blocked SVG data images.</dd></dl>
+    </section>
+
+    <section class="chapter" id="api">
+      <div class="chapter-head"><span class="chapter-no">17 · Contracts</span><div><h2>API Contracts</h2><p class="lead">The HTTP layer performs bounded validation and maps converter exceptions without duplicating conversion logic.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Endpoint</th><th>Input</th><th>Success output</th><th>Errors / limits</th></tr></thead><tbody>
+        <tr><td><code>GET /health</code></td><td>None</td><td><code>{"status":"ok"}</code></td><td>No dependency readiness probing</td></tr>
+        <tr><td><code>GET /</code></td><td>None</td><td>Single-conversion HTML</td><td>Static file failure is framework-level</td></tr>
+        <tr><td><code>GET /batch</code></td><td>None</td><td>Batch HTML</td><td>Static file failure is framework-level</td></tr>
+        <tr><td><code>POST /api/render</code></td><td>JSON Markdown</td><td>JSON HTML</td><td>Schema validation by FastAPI/Pydantic</td></tr>
+        <tr><td><code>POST /api/convert</code></td><td>One multipart DOCX/PDF</td><td><code>{filename, markdown}</code></td><td>415 unsupported; 400 empty; 422 conversion failure</td></tr>
+        <tr><td><code>POST /api/convert/batch</code></td><td>Multipart file list</td><td>ZIP streaming response</td><td>400 above 25 files; 413 above 100 MiB cumulative bytes</td></tr>
+      </tbody></table></div>
+      <p><span class="para-no">[0022]</span>Suffix dispatch is case-normalized. MIME is not the primary routing authority. This accepts valid files with generic MIME types but does not independently prove that content matches the suffix; parser success or failure is the subsequent discriminator.</p>
+      <p><span class="para-no">[0023]</span><span class="badge">Validated</span> For a given fixture, API Markdown exactly equals direct conversion. This is stronger than checking only equivalent structure and prevents adapter-layer postprocessing drift.</p>
+    </section>
+
+    <section class="chapter" id="batch">
+      <div class="chapter-head"><span class="chapter-no">18 · Batch</span><div><h2>Batch Conversion Architecture</h2><p class="lead">A synchronous per-file state machine localizes failures and packages successful outputs with deterministic collision handling.</p></div></div>
+      <div class="figure"><p class="figure-title">State machine behavior</p><div class="state"><div><strong>Unsupported</strong>Suffix absent from converter registry</div><div><strong>Empty</strong>Content byte sequence is falsey</div><div><strong>Error</strong>Authoritative converter raises</div><div><strong>Success</strong>Markdown, duration, size, unique output name</div></div><p class="caption">Each file reaches exactly one terminal state. Unsupported, empty, and error states do not terminate processing of subsequent files.</p></div>
+      <p><span class="para-no">[0024]</span>The module-level converter registry maps <code>.docx</code> and <code>.pdf</code> to the same functions used by the single endpoint. Successful filenames are formed from the source stem. A case-folded set detects collisions and appends <code>-2</code>, <code>-3</code>, and subsequent suffixes.</p>
+      <p><span class="para-no">[0025]</span>For each success, elapsed time is measured with <code>time.perf_counter</code> and rounded to one decimal millisecond; UTF-8 Markdown byte length is recorded. The manifest includes a twelve-hex-character batch identifier, UTC timestamp, aggregate status counts, and serialized per-file records. The archive is a DEFLATE-compressed <code>BytesIO</code> containing successful Markdown entries followed by <code>manifest.json</code>.</p>
+      <dl class="disclosure"><dt>Tradeoff</dt><dd>Simple deterministic isolation without queue infrastructure; entire batch remains synchronous and memory-resident.</dd><dt>Recovery behavior</dt><dd>Client retries the request after process/request failure; no resume token exists.</dd><dt>Validation</dt><dd><span class="badge">Validated</span> Mixed DOCX/PDF outputs, exact direct parity, duplicate output naming, manifest equality, separate batch page, ZIP API, and 25-file rejection.</dd></dl>
+    </section>
+
+    <section class="chapter" id="deployment">
+      <div class="chapter-head"><span class="chapter-no">19 · Deployment</span><div><h2>Deployment Design</h2><p class="lead">The same ASGI application and converters are intended for local browser and container/OpenShift execution.</p></div></div>
+      <div class="figure"><p class="figure-title">Figure 6. Deployment architecture</p><div class="flow four"><div class="node blue"><strong>Source + lock</strong>pyproject.toml<br>uv.lock<br>src/</div><div class="arrow">→</div><div class="node gold"><strong>OCI build</strong>Frozen production environment in builder stage</div><div class="arrow">→</div><div class="node"><strong>Runtime image</strong>Python 3.12 slim<br>rootless Uvicorn<br>port 8080</div><div class="arrow">→</div><div class="node violet"><strong>Execution targets</strong>Local container<br>Registry<br>OpenShift</div></div><p class="caption">Tests, local virtual environments, tooling, review material, and generated sites are excluded from build context.</p></div>
+      <p><span class="para-no">[0026]</span>The deployment design is stateless and single-process. The container command starts one Uvicorn worker bound to all interfaces on port 8080. This prevents hidden divergence between local and hosted conversion logic but does not provide in-process scheduling, durable jobs, or horizontal coordination.</p>
+      <div class="warning"><strong>Validation boundary.</strong> Deployment definitions and package/static assertions are implemented. No Docker, Podman, Buildah, or OpenShift CLI is available locally; an actual image build, registry transfer, vulnerability scan, and cluster rollout are not validated.</div>
+    </section>
+
+    <section class="chapter" id="container">
+      <div class="chapter-head"><span class="chapter-no">20 · Container</span><div><h2>Containerization Strategy</h2><p class="lead">A multi-stage locked build separates dependency resolution from the rootless runtime.</p></div></div>
+      <ol><li>Copy uv 0.12.5 from its dedicated image.</li><li>Use <code>python:3.12-slim-bookworm</code> as builder.</li><li>Copy only project metadata, lockfile, and source.</li><li>Execute <code>uv sync --frozen --no-dev --no-editable</code>.</li><li>Use a fresh Python slim runtime and install <code>libgomp1</code>, currently required by the retained ONNX chain.</li><li>Copy the builder virtual environment.</li><li>Set group ownership/permissions compatible with arbitrary OpenShift UIDs.</li><li>Redirect HOME and XDG cache to <code>/tmp</code>, disable bytecode writes, and enable unbuffered output.</li><li>Run as UID 1001 and expose an HTTP health check.</li></ol>
+      <dl class="disclosure"><dt>Purpose</dt><dd>Exclude build tools, test dependencies, and host-environment contamination from runtime.</dd><dt>Rationale</dt><dd>Frozen lock resolution and a clean builder provide reproducibility superior to copying the Windows `.venv`.</dd><dt>Tradeoff</dt><dd>The virtual environment is still copied wholesale; image size tracks runtime dependency closure.</dd><dt>Limitation</dt><dd>Base-image digest is not pinned; no SBOM, signature, or vulnerability evidence exists.</dd><dt>Validation</dt><dd><span class="badge">Validated</span> Static policy assertions for frozen sync, rootless user, health command, port, permissions, and build-context exclusions. Runtime execution remains unvalidated.</dd></dl>
+    </section>
+
+    <section class="chapter" id="openshift">
+      <div class="chapter-head"><span class="chapter-no">21 · OpenShift</span><div><h2>OpenShift Architecture</h2><p class="lead">A Deployment, Service, and edge-terminated Route define the target runtime topology.</p></div></div>
+      <div class="figure"><p class="figure-title">Figure 7. OpenShift runtime</p><div class="flow four"><div class="node violet"><strong>HTTPS client</strong>External request</div><div class="arrow">→</div><div class="node blue"><strong>Route</strong>Edge TLS termination<br>HTTP redirect</div><div class="arrow">→</div><div class="node gold"><strong>Service</strong>Port 8080<br>Label selector</div><div class="arrow">→</div><div class="node"><strong>Single Pod</strong>Non-root<br>Read-only root<br>/tmp emptyDir<br>/health probes</div></div><p class="caption">The manifest declares one replica; therefore the disclosed topology is not highly available.</p></div>
+      <div class="table-wrap"><table><thead><tr><th>Control</th><th>Declared value</th><th>Evidence status</th></tr></thead><tbody>
+        <tr><td>Readiness</td><td><code>/health</code>, delay 5 s, period 10 s</td><td>Manifest and endpoint statically validated; timing untested</td></tr>
+        <tr><td>Liveness</td><td><code>/health</code>, delay 15 s, period 20 s</td><td>Manifest and endpoint statically validated; restart behavior untested locally</td></tr>
+        <tr><td>Resources</td><td>250m/512Mi request; 2 CPU/2Gi limit</td><td>Declared, not load-tested</td></tr>
+        <tr><td>Security</td><td>No privilege escalation; drop ALL; read-only root; non-root; RuntimeDefault seccomp</td><td>Static assertions pass</td></tr>
+        <tr><td>Storage</td><td><code>emptyDir</code> mounted at <code>/tmp</code></td><td>Declared; capacity behavior untested</td></tr>
+        <tr><td>Ingress</td><td>Edge TLS; insecure traffic redirected</td><td>Declared; certificate lifecycle assumed platform-owned</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="chapter" id="reliability">
+      <div class="chapter-head"><span class="chapter-no">22 · Reliability</span><div><h2>Reliability Model</h2><p class="lead">Reliability is obtained through deterministic computation, failure isolation, and restartability rather than durable workflow state.</p></div></div>
+      <p><span class="para-no">[0027]</span>Conversion functions are stateless with respect to prior requests. Repeating a conversion with identical bytes and dependency versions is expected to reproduce the same Markdown, and tests enforce equality across channels. The service can therefore recover from process replacement by retrying the entire request.</p>
+      <div class="grid-2"><div class="card"><h3>Implemented controls</h3><ul><li>Empty and unsupported input rejection.</li><li>Per-file batch exception isolation.</li><li>Optional OCR failure isolation.</li><li>Health endpoint and orchestration probes.</li><li>Frozen dependency graph.</li><li>Verified external backup.</li></ul></div><div class="card"><h3>Absent controls</h3><ul><li>Durable queues and idempotency keys.</li><li>Partial-batch resume.</li><li>Timeouts around primary conversion.</li><li>Circuit breakers and admission control.</li><li>Multiple replicas or disruption budget.</li><li>Structured telemetry and SLOs.</li></ul></div></div>
+      <dl class="disclosure"><dt>Failure domain</dt><dd>A converter exception affects one single request or one batch item; process failure affects all in-flight work.</dd><dt>Recovery</dt><dd>Retry from source bytes; Kubernetes may restart a failed container; no intermediate recovery state exists.</dd><dt>Operational constraint</dt><dd>One worker and one declared replica; concurrency characteristics are not validated.</dd></dl>
+    </section>
+
+    <section class="chapter" id="errors">
+      <div class="chapter-head"><span class="chapter-no">23 · Errors</span><div><h2>Error Handling Framework</h2><p class="lead">Errors are translated at ownership boundaries and deliberately excluded from published Markdown.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Failure</th><th>Local behavior</th><th>External behavior</th><th>Recovery</th></tr></thead><tbody>
+        <tr><td>Empty single document</td><td>Boundary rejects before converter</td><td>HTTP 400</td><td>Supply content</td></tr>
+        <tr><td>Unsupported suffix</td><td>No converter selected</td><td>HTTP 415 / batch unsupported</td><td>Supply DOCX or PDF</td></tr>
+        <tr><td>Converter exception</td><td>API catches broad exception</td><td>HTTP 422 with generic detail</td><td>Repair source or inspect server logs</td></tr>
+        <tr><td>OCR discovery/extraction failure</td><td>Return no OCR text</td><td>Visual PDF content remains</td><td>Install/configure provider or accept visual output</td></tr>
+        <tr><td>Batch item exception</td><td>Record terminal error and continue</td><td>Manifest error; other successes packaged</td><td>Retry failed item</td></tr>
+        <tr><td>Batch count/size violation</td><td>Reject request</td><td>HTTP 400/413; no partial archive</td><td>Split or reduce batch</td></tr>
+      </tbody></table></div>
+      <h3>Failure scenarios</h3>
+      <ol><li>A malformed PDF causes the native route to throw; current code suppresses the exception and attempts MarkItDown. If both fail, API returns 422.</li><li>A page meets scan criteria but Tesseract times out; no OCR text is appended, while extracted visual blocks remain.</li><li>A large image-heavy batch exceeds process/container memory before the API's byte limit reflects expanded raster/base64 output; the process may terminate and no ZIP is returned.</li><li>A batch contains one malformed file; that item becomes <code>error</code> and subsequent files continue.</li></ol>
+    </section>
+
+    <section class="chapter" id="tests">
+      <div class="chapter-head"><span class="chapter-no">24 · Testing</span><div><h2>Test Methodology</h2><p class="lead">Retained tests function as executable behavioral specifications at direct, HTTP, batch, rendering, scan-routing, and deployment-policy layers.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Module</th><th>Count</th><th>Primary property</th></tr></thead><tbody><tr><td><code>test_converter.py</code></td><td>4</td><td>Direct DOCX/PDF conversion and empty rejection</td></tr><tr><td><code>test_api.py</code></td><td>10</td><td>Pages, assets, rendering safety, errors, exact direct/API parity</td></tr><tr><td><code>test_docx_fidelity.py</code></td><td>6</td><td>Hierarchy, emphasis, lists, Unicode, links, tables, complete image bytes</td></tr><tr><td><code>test_pdf_fidelity.py</code></td><td>4</td><td>Hierarchy, links, images, tables, bullets, API parity</td></tr><tr><td><code>test_pdf_scanned.py</code></td><td>4</td><td>Scan detection, visual fallback, provider routing, nonfatal absence</td></tr><tr><td><code>test_batch.py</code></td><td>4</td><td>Reuse, ZIP/manifest, UI separation, count limit</td></tr><tr><td><code>test_container.py</code></td><td>4</td><td>Health and static Docker/OpenShift policy</td></tr></tbody></table></div>
+      <p><span class="para-no">[0028]</span><span class="badge">Measured</span> The total is 36 passing tests. The tests favor structural assertions over whole-output snapshots where generated container metadata, UUIDs, or document internals are volatile. Exact equality is reserved for invocation parity, where volatility is absent because the same authoritative function must determine content.</p>
+      <pre>.\.tools\uv\uv.exe run --python .\.venv\Scripts\python.exe pytest -q \
+tests\test_converter.py tests\test_api.py tests\test_docx_fidelity.py \
+tests\test_pdf_fidelity.py tests\test_pdf_scanned.py tests\test_batch.py \
+tests\test_container.py</pre>
+    </section>
+
+    <section class="chapter" id="corpus">
+      <div class="chapter-head"><span class="chapter-no">25 · Corpus</span><div><h2>Corpus Evaluation Methodology</h2><p class="lead">Synthetic fixtures isolate structural properties; real pilots expose layout and encoding interactions absent from unit constructions.</p></div></div>
+      <h3>DOCX corpus</h3><p>Ten deterministic fixtures covered semantic and visually inferred headings, emphasis, ordered and unordered lists, Unicode, external links, tables, images, and special-character behavior. <span class="badge">Measured</span> Technical conversion and direct/API parity were 10/10. One fixture was flagged for review because literal Markdown-special characters can render differently despite successful extraction.</p>
+      <h3>PDF corpus</h3><p><span class="badge">Measured</span> Eight operational guides totaled 45 pages, 45 unique images, 24 unique URIs, and eight detected table regions. Automated corpus gates reached 8/8 for direct/API parity, links, unique-image parity, and configured structural checks after repeated furniture exclusion.</p>
+      <dl class="disclosure"><dt>Purpose</dt><dd>Expose algorithmic blind spots that minimal synthetic streams cannot reproduce.</dd><dt>Mechanism</dt><dd>Inventory source structure, execute authoritative converter directly and through API, compare exact Markdown, count recoverable structures, and visually inspect selected source/output pairs.</dd><dt>Limitation</dt><dd>Historical corpus artifacts are archived outside the lean workspace and are not part of routine retained tests.</dd><dt>Privacy constraint</dt><dd>Operational documents remain local and must not be committed or transmitted without approval.</dd></dl>
+    </section>
+
+    <section class="chapter" id="fidelity">
+      <div class="chapter-head"><span class="chapter-no">26 · Fidelity</span><div><h2>Fidelity Validation Framework</h2><p class="lead">Technical validity, interface parity, and human-perceived fidelity are separate axes.</p></div></div>
+      <div class="figure"><p class="figure-title">Figure 8. Validation framework</p><div class="flow four"><div class="node blue"><strong>Gate A: technical</strong>Converts<br>No exception<br>Expected structures present</div><div class="arrow">→</div><div class="node"><strong>Gate B: parity</strong>Direct = API<br>Direct = batch entry</div><div class="arrow">→</div><div class="node gold"><strong>Gate C: structural</strong>Headings<br>Links<br>Tables<br>Images<br>Text order indicators</div><div class="arrow">→</div><div class="node violet"><strong>Gate D: human</strong>Source/output comparison<br>Accept, reject, or document boundary</div></div><p class="caption">Automated gates cannot substitute for Gate D and are never labeled human review.</p></div>
+      <p><span class="para-no">[0029]</span>Structural tests answer whether defined content is present and whether invocation channels agree. They do not answer whether a multi-column page reads naturally, a heading hierarchy communicates the source, a table remains cognitively usable, or an image crop conveys the intended information. Human fidelity review evaluates those properties against source presentation.</p>
+      <div class="warning"><strong>Current release boundary.</strong> The engineering handoff states that formal human fidelity sign-off is open. Automated corpus success must therefore be described as technical or structural evidence, not human approval.</div>
+    </section>
+
+    <section class="chapter" id="dependencies">
+      <div class="chapter-head"><span class="chapter-no">27 · Dependencies</span><div><h2>Dependency Minimization Research</h2><p class="lead">The active footprint is dominated by environments, especially a file-detection inference chain not intrinsic to bounded DOCX/PDF routing.</p></div></div>
+      <div class="figure"><p class="figure-title">Figure 9. Dependency relationship graph</p><div class="branch"><div class="node blue"><strong>Retained application stack</strong>FastAPI · Uvicorn · markdown-it-py · python-multipart · python-docx · pdfplumber · pypdfium2 · Pillow</div><div class="node red"><strong>MarkItDown closure candidate</strong>MarkItDown → Magika → ONNX Runtime → NumPy/OpenBLAS + SymPy/mpmath + support packages</div></div><div class="branch" style="margin-top:10px"><div class="node gold"><strong>DOCX internals already present</strong>Mammoth 0.405 MiB<br>markdownify 0.079 MiB</div><div class="node violet"><strong>Proposed bounded routing</strong>Explicit suffix dispatch eliminates general ML format identification after behavioral parity is proven</div></div><p class="caption">The proposed change is research/planning, not the active implementation.</p></div>
+      <div class="table-wrap"><table><thead><tr><th>Measured component</th><th>Installed size</th></tr></thead><tbody><tr><td>Magika executable</td><td>22.699 MiB</td></tr><tr><td>ONNX Runtime including metadata</td><td>31.702 MiB</td></tr><tr><td>NumPy, OpenBLAS, metadata</td><td>41.766 MiB</td></tr><tr><td>SymPy and mpmath</td><td>27.442 MiB</td></tr><tr><td>Magika package and metadata</td><td>3.236 MiB</td></tr><tr><td>MarkItDown package and metadata</td><td>0.426 MiB</td></tr><tr><td>Remaining exclusive support</td><td>3.34 MiB</td></tr><tr><td><strong>Total candidate closure</strong></td><td><strong>130.61 MiB</strong></td></tr></tbody></table></div>
+      <p><span class="para-no">[0030]</span><span class="badge calc">Calculated</span> 213.65 MiB minus 130.61 MiB equals 83.04 MiB. This residual is only a projection. Removal requires DOCX parity, explicit PDF failure behavior, a regenerated lock, and an isolated clean-environment gate before the active environment changes.</p>
+    </section>
+
+    <section class="chapter" id="runtime">
+      <div class="chapter-head"><span class="chapter-no">28 · Runtime</span><div><h2>Runtime Efficiency Analysis</h2><p class="lead">Disk footprint, committed memory, working set, virtual address space, latency, and expanded document size are distinct measurements.</p></div></div>
+      <div class="figure"><p class="figure-title">Figure 10. Runtime memory model</p><div class="grid-4"><div class="node blue"><strong>Source bytes</strong>Multipart payloads and batch accumulation</div><div class="node gold"><strong>Parser graphs</strong>OOXML objects or PDF page/character structures</div><div class="node red"><strong>Raster working set</strong>2× page renders, crops, PNG buffers, OCR input</div><div class="node violet"><strong>Output expansion</strong>Base64 Markdown, HTML preview, ZIP buffer</div></div><p class="caption">Peak memory is not bounded by source bytes alone because rasterization and base64 representation expand data.</p></div>
+      <div class="grid-4"><div class="card metric"><strong>384.23 MiB</strong><span>Workspace</span><small>Measured recheck</small></div><div class="card metric"><strong>213.65 MiB</strong><span>Virtual environment</span><small>Measured</small></div><div class="card metric"><strong>170.20 MiB</strong><span>Project-local tools</span><small>Measured recheck</small></div><div class="card metric"><strong>&lt;0.4 MiB</strong><span>Code/tests/docs/config</span><small>Measured order of magnitude</small></div></div>
+      <p><span class="para-no">[0031]</span><span class="badge">Measured</span> A live process working set of 36.77 MiB and private committed memory of 427.61 MiB after conversion activity were previously observed. These are workload-specific observations, not capacity guarantees. Approximately 4.7 GiB of virtual address space was observed but is primarily reservation/mapping and is not treated as physical-memory consumption.</p>
+      <dl class="disclosure"><dt>Efficiency mechanism</dt><dd>Single process, no persistence, conditional OCR, duplicate image suppression, frozen production dependencies.</dd><dt>Adverse scaling</dt><dd>Sequential page rendering, base64 expansion, in-memory ZIP generation, and no single-file upload limit.</dd><dt>Measurement requirement</dt><dd>Cold start, idle, first DOCX, first PDF, repeated conversion, scan, and mixed batch must be measured separately.</dd></dl>
+    </section>
+
+    <section class="chapter" id="security">
+      <div class="chapter-head"><span class="chapter-no">29 · Security</span><div><h2>Security Model</h2><p class="lead">Implemented controls reduce rendering and container privilege risk; enterprise service controls remain out of scope.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Threat surface</th><th>Implemented control</th><th>Residual risk</th></tr></thead><tbody>
+        <tr><td>Raw Markdown HTML/script</td><td>Renderer disables raw HTML; unsafe-link and SVG-data tests</td><td>Markdown remains user-editable data and may be consumed elsewhere under different policy</td></tr>
+        <tr><td>Filename path traversal</td><td>Uploads are never written using source paths; output uses stem in in-memory ZIP</td><td>No explicit filename sanitization test; unusual ZIP names require review</td></tr>
+        <tr><td>Malformed parser input</td><td>Generic 422 or per-file error; dependency parsers handle format internals</td><td>No malware scan, sandbox, parser timeout, or decompression limit</td></tr>
+        <tr><td>Resource exhaustion</td><td>25-file and 100 MiB batch limits</td><td>No single-file limit; raster/base64 expansion can exceed source size; no concurrency gate</td></tr>
+        <tr><td>Container privilege</td><td>Non-root, no escalation, dropped capabilities, read-only root, seccomp</td><td>Actual runtime policy not cluster-validated</td></tr>
+        <tr><td>Network exposure</td><td>OpenShift Route declares edge TLS and HTTP redirect</td><td>No auth, authorization, rate limiting, audit log, or tenant isolation</td></tr>
+        <tr><td>OCR subprocess</td><td>Fixed argument shape and timeout; optional discovery</td><td>External native parser receives untrusted image bytes; version governance absent</td></tr>
+      </tbody></table></div>
+      <p><span class="para-no">[0032]</span>The apparatus is appropriate only for a controlled internal pilot under the documented release boundary. Public or multi-tenant deployment requires controls not presently implemented.</p>
+    </section>
+
+    <section class="chapter" id="recovery">
+      <div class="chapter-head"><span class="chapter-no">30 · Recovery</span><div><h2>Recovery and Rollback Strategy</h2><p class="lead">Recovery operates at request, deployment, source, dependency, and archive layers.</p></div></div>
+      <h3>Request recovery</h3><p>Because the service is stateless, failed work is retried from original bytes. Individual batch failures can be retried separately using manifest status.</p>
+      <h3>Deployment recovery</h3><p>Readiness removes an unhealthy endpoint; liveness is intended to trigger restart. OpenShift Deployment revision rollback is available as a platform behavior but has not been exercised locally.</p>
+      <h3>Source and environment rollback</h3><p>A verified Safe Lean backup exists at <code>C:\MKDocsbackup\Docs-to-MK-safe-lean-20260817-203034</code>. Dependency-minimization work is checkpointed so source, manifest, and lock can be restored before recreating the environment. Individual packages are never to be deleted manually from <code>site-packages</code>.</p>
+      <div class="danger"><strong>Toolchain coupling.</strong> The active <code>.venv\pyvenv.cfg</code> points to the project-local Python under <code>.tools\python312</code>. Deleting only <code>.tools</code> breaks the environment. Externalization requires rebuilding the virtual environment against a verified external interpreter first.</div>
+    </section>
+
+    <section class="chapter" id="governance">
+      <div class="chapter-head"><span class="chapter-no">31 · Governance</span><div><h2>Governance and Development Rules</h2><p class="lead">Development controls are part of the disclosed engineering system because they protect behavioral invariants.</p></div></div>
+      <ol><li>Complete exactly one approved checkpoint at a time.</li><li>Before editing, state purpose, expected files, and focused validation.</li><li>After validation, report and stop for approval.</li><li>Keep one authoritative conversion function per format.</li><li>Add exact interface parity tests for Markdown and later approved assets/metadata.</li><li>Keep diagnostics out of published Markdown.</li><li>Treat optional converters and OCR providers as adapters.</li><li>Prefer native semantics, targeted OCR, then visual fallback.</li><li>Separate technical success from fidelity.</li><li>Use structural assertions rather than volatile whole-file snapshots.</li><li>Never call automated ratings human review.</li><li>Restore archived evaluation artifacts only for an explicitly approved fidelity review.</li></ol>
+      <p><span class="para-no">[0033]</span>These controls narrow blast radius and ensure a failed hypothesis is detected before a second behavior slice changes. The rules are operational constraints on preferred implementation evolution, not end-user requirements.</p>
+    </section>
+
+    <section class="chapter" id="risks">
+      <div class="chapter-head"><span class="chapter-no">32 · Risks</span><div><h2>Engineering Risks</h2><p class="lead">Risk is stated as a concrete failure mechanism, current control, and unresolved exposure.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Risk</th><th>Failure mechanism</th><th>Current control</th><th>Residual</th></tr></thead><tbody>
+        <tr><td>Reading-order corruption</td><td>Multi-column or floating PDF geometry linearizes incorrectly</td><td>Vertical ordering and paragraph alignment thresholds</td><td>No general column model</td></tr>
+        <tr><td>Heading false positive/negative</td><td>Visual emphasis resembles or hides headings</td><td>Conservative thresholds and punctuation/list exclusions</td><td>No learned/document-wide classifier</td></tr>
+        <tr><td>Table semantic loss</td><td>Merged cells and irregular grids flatten</td><td>Sparse/callout normalization and content preservation</td><td>Original topology unrecoverable in Markdown</td></tr>
+        <tr><td>Link misassociation</td><td>Annotation rectangles overlap neighboring text</td><td>Character-level geometric intersection</td><td>No semantic anchor verification</td></tr>
+        <tr><td>Image inflation</td><td>Rasterization and base64 enlarge output</td><td>Crop sizing and SHA-256 deduplication</td><td>No external-asset mode</td></tr>
+        <tr><td>Parser exploitation</td><td>Untrusted complex formats reach native libraries</td><td>Rootless/read-only target container; generic failure</td><td>No sandbox or malware scanning</td></tr>
+        <tr><td>Silent fallback divergence</td><td>Native PDF exception is suppressed and MarkItDown output differs</td><td>Final direct/API parity only</td><td>Fallback route itself lacks explicit metadata</td></tr>
+        <tr><td>Dependency bloat</td><td>General file detection imports ML runtime</td><td>Measured removal plan and no-go gates</td><td>Replacement not implemented</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="chapter" id="constraints">
+      <div class="chapter-head"><span class="chapter-no">33 · Constraints</span><div><h2>Known Constraints</h2><p class="lead">Constraints prevent overstatement of the apparatus.</p></div></div>
+      <ul><li>Supported source suffixes are DOCX and PDF only.</li><li>Exact Word/PDF visual layout is not representable in the target Markdown grammar.</li><li>Encrypted/password-protected PDFs may fail.</li><li>Multi-column reading order is not generally solved.</li><li>Complex merged-cell tables are normalized rather than preserved geometrically.</li><li>Image alt text is generic and not machine-captioned.</li><li>Real Tesseract quality is unmeasured; absence yields visual-only scan preservation.</li><li>DOCX Office equation behavior is not covered by retained tests and is a planned probe before dependency replacement.</li><li>Batch is synchronous, limited to 25 files and 100 MiB source bytes, and not resumable.</li><li>No single-file limit, durable queue, timeout around primary conversion, or concurrency semaphore exists.</li><li>No authentication, authorization, rate limiting, malware scanning, audit logging, retention policy enforcement, or tenant isolation exists.</li><li>Container and OpenShift definitions have not been executed locally.</li><li>OpenShift declares one replica and no disruption budget or autoscaler.</li><li>No Windows packaged executable is implemented.</li><li>No Git release, CI/CD pipeline, SBOM, signature, or production rollback exercise is evidenced.</li></ul>
+    </section>
+
+    <section class="chapter" id="results">
+      <div class="chapter-head"><span class="chapter-no">34 · Results</span><div><h2>Experimental Results</h2><p class="lead">Results are classified by evidence type and limited to observed outcomes.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Experiment / measurement</th><th>Outcome</th><th>Classification</th></tr></thead><tbody>
+        <tr><td>Retained automated suite</td><td>36 passing tests across seven modules</td><td><span class="badge">Measured</span></td></tr>
+        <tr><td>DOCX deterministic corpus</td><td>10/10 technical pass and exact direct/API parity; one special-character review flag</td><td><span class="badge">Measured</span></td></tr>
+        <tr><td>PDF pilot corpus</td><td>8 documents, 45 pages, 45 images, 24 URIs, 8 table regions; 8/8 configured automated gates</td><td><span class="badge">Measured</span></td></tr>
+        <tr><td>Word COM PDF→DOCX</td><td>Five-page PDF exceeded 120 seconds, emitted no DOCX, left owned WINWORD process</td><td><span class="badge exp">Experimental / rejected</span></td></tr>
+        <tr><td>Marker 2.0 spike</td><td>Isolated install/import exploration; Windows DOCX path encountered GTK/Pango via WeasyPrint; parked</td><td><span class="badge exp">Experimental / parked</span></td></tr>
+        <tr><td>Safe Lean cleanup</td><td>Workspace reduced from 1,642.40 MiB to 384.23 MiB on remeasurement; 76.6% reduction; health remained OK</td><td><span class="badge">Measured</span></td></tr>
+        <tr><td>MarkItDown closure</td><td>130.61 MiB measured candidate removal; 83.04 MiB arithmetic residual</td><td><span class="badge">Measured</span> / <span class="badge calc">Calculated</span></td></tr>
+        <tr><td>Runtime memory observation</td><td>36.77 MiB working set; 427.61 MiB private commit after activity</td><td><span class="badge">Measured instance</span></td></tr>
+      </tbody></table></div>
+      <p><span class="para-no">[0034]</span>No result in this section establishes patent novelty, production scalability, formal human fidelity, OCR accuracy, container image size, or cluster readiness.</p>
+    </section>
+
+    <section class="chapter" id="future">
+      <div class="chapter-head"><span class="chapter-no">35 · Research</span><div><h2>Future Research Directions</h2><p class="lead">Future directions are explicitly unimplemented and are not part of the preferred embodiment at the evidence cutoff.</p></div></div>
+      <ol><li><strong>Equation preservation study.</strong> Compare current MarkItDown OMML preprocessing with direct Mammoth behavior before selecting a lightweight replacement.</li><li><strong>Dependency-minimized DOCX path.</strong> Direct Mammoth-to-HTML and constrained markdownify conversion with complete parity gates.</li><li><strong>Explicit PDF failure contract.</strong> Remove silent fallback only after malformed/encrypted/blank behavior is tested.</li><li><strong>Document-wide hierarchy model.</strong> Infer PDF heading levels from global font clusters rather than page-relative medians.</li><li><strong>Column segmentation.</strong> Identify page regions before reading-order assembly.</li><li><strong>Table topology metadata.</strong> Preserve spans and geometric confidence outside Markdown.</li><li><strong>Asset bundle mode.</strong> Externalize images with content-addressed names while preserving single-file data-URI mode.</li><li><strong>OCR evaluation.</strong> Measure real scans, languages, page segmentation modes, latency, and confidence without making OCR mandatory.</li><li><strong>Resource governance.</strong> Add single-file expanded-size limits, conversion timeouts, concurrency admission, and streaming/spooled archives.</li><li><strong>Production security.</strong> Add authentication, authorization, malware scanning, structured audit, rate limiting, SBOM, signing, and vulnerability gates.</li><li><strong>Runtime validation.</strong> Build and run the OCI image, random-UID test, OpenShift rollout, probe behavior, and rollback.</li><li><strong>Alternative interfaces.</strong> A CLI or desktop shell may delegate to the same converter boundaries; neither is currently implemented.</li></ol>
+    </section>
+
+    <section class="chapter" id="claims">
+      <div class="chapter-head"><span class="chapter-no">36 · Claims</span><div><h2>Formal Claims</h2><p class="lead">Conservative engineering claim candidates grounded in the implemented preferred embodiment; subject to prior-art search, claim construction, inventorship analysis, and legal review.</p></div></div>
+      <div class="notice"><strong>No legal assertion.</strong> The following language describes combinations evidenced in the project. Inclusion does not assert novelty, non-obviousness, eligibility, enforceability, ownership, or inventorship.</div>
+      <div class="claim"><strong>1. A computer-implemented method</strong> comprising: receiving a byte sequence representing a portable document format document; opening the byte sequence through a character-geometry extractor and a page rasterizer; determining repeated page furniture from normalized text in upper and lower page regions across a plurality of pages; computing a representative body font size; classifying extracted content into headings, paragraphs, lists, tables, hyperlinks, and image blocks using geometric and typographic properties; conditionally routing a page to an optical-character-recognition adapter according to both native-character sparsity and image-coverage criteria; and serializing the classified content as Markdown.</div>
+      <div class="claim dep"><strong>2. The method of claim 1,</strong> wherein text in a top ten percent or bottom eight percent page region is normalized by lowercasing, collapsing whitespace, and replacing digit runs, and is omitted when the normalized text occurs at least twice.</div>
+      <div class="claim dep"><strong>3. The method of claim 1,</strong> wherein a heading level is inferred from a font size relative to a median character size, horizontal alignment, text length, terminal punctuation, page index, and prior heading state.</div>
+      <div class="claim dep"><strong>4. The method of claim 1,</strong> wherein list nesting is inferred by maintaining a stateful sequence of horizontal marker positions and assigning indentation according to a position cluster within a tolerance.</div>
+      <div class="claim dep"><strong>5. The method of claim 1,</strong> wherein a hyperlink annotation is associated with text by testing overlap between an annotation rectangle and respective character rectangles before contiguous characters sharing a URI are grouped.</div>
+      <div class="claim dep"><strong>6. The method of claim 1,</strong> wherein an image region is cropped from a rendered page, resized from seventy-two-unit PDF dimensions to ninety-six-unit display dimensions, PNG-encoded, SHA-256 hashed, suppressed when the hash was previously emitted for the document, and embedded as a data URI.</div>
+      <div class="claim dep"><strong>7. The method of claim 1,</strong> wherein a page is routed to optical character recognition only when fewer than forty visible native characters are present and an image covers more than fifty-five percent of the page.</div>
+      <div class="claim"><strong>8. A computer-implemented method</strong> comprising: receiving an Office Open XML document; parsing paragraphs and runs in memory; excluding paragraphs having existing heading/title styles, list styles, numbering properties, empty text, or incomplete bold formatting; inferring a heading level from maximum run font size, text length, and terminal punctuation; applying a semantic heading style to a temporary document representation; clearing direct heading-run formatting; and converting the temporary representation to Markdown while preserving embedded image data URIs.</div>
+      <div class="claim dep"><strong>9. The method of claim 8,</strong> wherein at least seventeen points maps to level one, at least fifteen points maps to level two, and a shorter fully bold non-terminal-punctuation paragraph maps to level three.</div>
+      <div class="claim dep"><strong>10. The method of claim 8,</strong> wherein the original byte sequence is not modified and reserialization occurs only when at least one paragraph is promoted.</div>
+      <div class="claim"><strong>11. A document conversion system</strong> comprising: one authoritative byte-to-Markdown function for each supported source format; an HTTP adapter configured to dispatch a source document to the corresponding authoritative function; a batch adapter configured to invoke the same authoritative functions independently for a plurality of files; and validation instructions configured to require exact equality between direct output, HTTP output, and each successful batch archive entry for the same input.</div>
+      <div class="claim dep"><strong>12. The system of claim 11,</strong> wherein the batch adapter assigns each input exactly one of success, unsupported, empty, or error terminal states and continues processing after a per-file failure.</div>
+      <div class="claim dep"><strong>13. The system of claim 12,</strong> wherein successful names are made unique by case-folded collision detection and monotonically increasing numeric suffixes, and a manifest records a batch identifier, UTC creation time, aggregate counts, elapsed conversion time, and Markdown byte size.</div>
+      <div class="claim"><strong>14. A processing apparatus</strong> comprising: a Markdown renderer configured with raw HTML, automatic linkification, and typographic substitution disabled and table syntax enabled; an endpoint receiving editable Markdown and returning rendered HTML; and tests configured to reject script markup, JavaScript hyperlink targets, and SVG image data while accepting raster image data.</div>
+      <div class="claim"><strong>15. A containerized document conversion apparatus</strong> comprising: a build stage that creates a frozen production virtual environment from a dependency lock; a runtime stage that copies the environment into a Python runtime; a non-root process bound to an HTTP port; a health endpoint; a read-only-root-compatible writable temporary volume; and an orchestration security context disabling privilege escalation, dropping Linux capabilities, enforcing non-root execution, and applying a runtime-default seccomp profile.</div>
+      <div class="claim dep"><strong>16. The apparatus of claim 15,</strong> further comprising readiness and liveness probes targeting the same health endpoint, an edge-terminated TLS route, and an HTTP-to-HTTPS redirect policy.</div>
+      <div class="claim"><strong>17. A non-transitory computer-readable medium</strong> storing instructions which, when executed, perform the method of any one of claims 1 through 10.</div>
+      <div class="claim"><strong>18. The system of claim 11,</strong> wherein technical success is recorded separately from human fidelity status and no automated structural metric is represented as human review.</div>
+      <div class="claim"><strong>19. The method of claim 1,</strong> wherein absence or failure of the optical-character-recognition adapter does not prevent native conversion and a scanned page retains an embedded visual representation without recognized text.</div>
+      <div class="claim"><strong>20. The system of claim 11,</strong> wherein conversion diagnostics are emitted in response or manifest metadata and excluded from the generated Markdown content.</div>
+      <h3>Preferred embodiment</h3><p>The preferred embodiment is the current v0.1.0 implementation: MarkItDown-backed DOCX conversion after conservative in-memory heading promotion; native geometry-aware PDF extraction with optional Tesseract and final MarkItDown fallback; safe CommonMark preview; synchronous batch ZIP output; FastAPI/Uvicorn execution; and rootless Docker/OpenShift definitions.</p>
+      <h3>Alternative embodiments</h3><p>Alternative embodiments may replace MarkItDown with direct Mammoth/markdownify after parity validation, expose a CLI or desktop shell that delegates to the same functions, externalize assets, persist batch jobs, or provide additional OCR adapters. These alternatives are not implemented at the evidence cutoff and are not evidence for current capability.</p>
+    </section>
+
+    <section class="chapter" id="conclusion">
+      <div class="chapter-head"><span class="chapter-no">37 · Conclusion</span><div><h2>Conclusions</h2><p class="lead">The disclosed system is a bounded document compiler with explicit semantic, operational, and evidentiary contracts.</p></div></div>
+      <p><span class="para-no">[0035]</span>The apparatus does not treat DOCX and PDF as interchangeable containers. It assigns each format an extraction strategy appropriate to its information model while constraining both to one Markdown result boundary. DOCX semantic structure is augmented only where conservative visual evidence exists. PDF structure is reconstructed from character geometry, page statistics, annotations, grids, rasterized image regions, and optional OCR.</p>
+      <p><span class="para-no">[0036]</span>The principal systems property is not any individual parsing heuristic but the composition of format authority, invocation parity, conditional fallback, per-file isolation, self-contained asset output, safe rendering, and evidence-controlled validation. This composition makes behavior inspectable and regression-resistant while preserving explicit limits.</p>
+      <p><span class="para-no">[0037]</span><span class="badge">Validated</span> The active system supports controlled internal DOCX/PDF conversion, editable preview, individual download, mixed batch ZIP output, and image-only-page visual preservation under 36 retained tests. <span class="badge assumed">Unvalidated</span> Production security, real OCR quality, actual container/OpenShift operation, high availability, scale, and formal human fidelity remain outside the current evidence boundary.</p>
+    </section>
+
+    <section class="chapter" id="evidence">
+      <div class="chapter-head"><span class="chapter-no">38 · Evidence</span><div><h2>Evidence Register</h2><p class="lead">Authoritative implementation and validation surfaces used to construct this disclosure.</p></div></div>
+      <div class="table-wrap"><table class="evidence-register"><thead><tr><th>Artifact</th><th>Evidence supplied</th></tr></thead><tbody>
+        <tr><td>src/docs_to_markdown/converter.py</td><td>DOCX empty rejection, heading inference, temporary normalization, MarkItDown invocation and image policy.</td></tr>
+        <tr><td>src/docs_to_markdown/pdf_converter.py</td><td>PDF geometry, styling, links, tables, furniture, images, scan routing, assembly, fallback behavior.</td></tr>
+        <tr><td>src/docs_to_markdown/ocr_adapter.py</td><td>OCR protocol, provider discovery, probe and extraction timeout behavior.</td></tr>
+        <tr><td>src/docs_to_markdown/renderer.py</td><td>CommonMark profile and disabled features.</td></tr>
+        <tr><td>src/docs_to_markdown/api.py</td><td>Routes, suffix dispatch, limits, error mapping, response contracts, static serving.</td></tr>
+        <tr><td>src/docs_to_markdown/batch_converter.py</td><td>State machine, converter reuse, naming, measurement, manifest, archive.</td></tr>
+        <tr><td>tests/*.py</td><td>36 retained executable assertions across conversion, parity, fidelity structures, scans, batch, and deployment policy.</td></tr>
+        <tr><td>pyproject.toml and uv.lock</td><td>Python boundary, direct dependency declarations, test extra, frozen graph.</td></tr>
+        <tr><td>Dockerfile and .dockerignore</td><td>Build stages, rootless runtime, health command, production exclusions.</td></tr>
+        <tr><td>deploy/openshift.yaml</td><td>Deployment, resources, probes, security context, temporary storage, Service and Route.</td></tr>
+        <tr><td>AGENTS.md</td><td>Execution, conversion, quality, and current-boundary governance.</td></tr>
+        <tr><td>CONTAINER.md</td><td>Intended build/run/OpenShift procedure and limitations.</td></tr>
+        <tr><td>docs/Docs to Markdown - Engineering Handoff.html</td><td>Consolidated evidence history, corpus counts, measured footprint, experimental decisions, and release boundary.</td></tr>
+        <tr><td>C:\MKDocsbackup\Docs-to-MK-safe-lean-20260817-203034</td><td>Verified preservation location for removed corpus/evaluation/experimental artifacts.</td></tr>
+      </tbody></table></div>
+      <h3>Evidence exclusions</h3><ul><li>Agent-generated estimates not independently represented in code, tests, measured artifacts, or the authoritative handoff were excluded.</li><li>No assertion is made that a static Kubernetes declaration has been exercised in a live cluster.</li><li>No automated rating is represented as human fidelity review.</li><li>No projected post-dependency-removal size is represented as a completed build.</li><li>No future research direction is represented as current capability.</li></ul>
+      <p class="footer-note">End of technical disclosure · Docs to Markdown v0.1.0 · Evidence cutoff 2026-08-17</p>
+    </section>
+  </main>
+</div>
+</body>
+</html>

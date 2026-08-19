@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Batch Documents to Markdown</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <script src="/static/batch.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <header class="page-header">
+        <h1>Batch Documents to Markdown</h1>
+        <a href="/">Single conversion</a>
+      </header>
+
+      <form id="batch-form">
+        <label for="documents">DOCX or PDF files</label>
+        <input id="documents" name="files" type="file" accept=".docx,.pdf" multiple required>
+        <button type="submit">Convert batch</button>
+      </form>
+
+      <p id="batch-summary">Choose up to 25 files. Successful conversions and a manifest will be downloaded as one ZIP file.</p>
+      <p id="batch-status" role="status" aria-live="polite"></p>
+
+      <section aria-labelledby="selected-heading">
+        <h2 id="selected-heading">Selected files</h2>
+        <ul id="selected-files" class="file-list"><li>No files selected.</li></ul>
+      </section>
+    </main>
+  </body>
+</html>

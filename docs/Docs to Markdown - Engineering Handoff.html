@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docs to Markdown | Engineering Handoff</title>
+<style>
+  :root{--ink:#17211f;--muted:#52605d;--line:#ccd6d2;--paper:#f4f6f3;--white:#fff;--teal:#087b69;--deep:#123b35;--mint:#e3f3ed;--blue:#295d87;--blue-soft:#e8f0f7;--gold:#af7914;--gold-soft:#fff1ce;--red:#a6413c;--red-soft:#f9e8e6;--code:#13201e}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;color:var(--ink);background:var(--paper);font:15px/1.55 Aptos,"Segoe UI",sans-serif;letter-spacing:0}
+  a{color:var(--teal);text-underline-offset:3px}
+  code,kbd,pre{font-family:"Cascadia Code",Consolas,monospace}
+  code{padding:1px 4px;background:#e9efec;border-radius:2px;font-size:.92em}
+  .shell{width:min(1120px,calc(100% - 34px));margin:0 auto}
+  .cover{min-height:710px;padding:70px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden;color:white;background:var(--deep)}
+  .cover:before{content:"";position:absolute;inset:0;opacity:.22;background-image:linear-gradient(rgba(255,255,255,.28) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.28) 1px,transparent 1px);background-size:48px 48px}
+  .cover:after{content:"ENGINEERING";position:absolute;right:-18px;top:65px;color:rgba(255,255,255,.06);font:800 112px/1 Aptos,sans-serif;writing-mode:vertical-rl}
+  .cover>*{position:relative;z-index:1}
+  .cover .kicker{margin:0 0 15px;color:#a8ded4;font-weight:800;text-transform:uppercase;letter-spacing:.14em}
+  .cover h1{max-width:760px;margin:0;font:700 78px/.94 Georgia,serif;letter-spacing:0}
+  .cover .deck{max-width:760px;margin:25px 0 0;color:#d9eae5;font-size:23px;line-height:1.38}
+  .cover-meta{margin-top:40px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:rgba(255,255,255,.2)}
+  .cover-meta div{padding:15px;background:rgba(9,38,33,.76)}
+  .cover-meta strong{display:block;color:#bdeade;font-size:19px}
+  .cover-meta span{display:block;margin-top:3px;color:#d5e6e1;font-size:11px;text-transform:uppercase;letter-spacing:.07em}
+  .notice{padding:18px 22px;border-left:5px solid var(--gold);background:var(--gold-soft)}
+  .notice strong{color:#6c4804}
+  .toc{margin:25px 0 0;padding:25px;border:1px solid var(--line);background:var(--white);columns:2;column-gap:50px}
+  .toc h2{column-span:all;margin-top:0}
+  .toc ol{margin:0;padding-left:25px}
+  .toc li{margin:7px 0;break-inside:avoid}
+  main{padding:35px 0 70px}
+  section{padding:50px 0 0;scroll-margin-top:20px}
+  .section-head{display:grid;grid-template-columns:115px 1fr;gap:25px;padding-bottom:14px;margin-bottom:24px;border-bottom:2px solid var(--line)}
+  .section-num{color:var(--teal);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+  h2{margin:0;font:700 37px/1.05 Georgia,serif}
+  h3{margin:26px 0 9px;font:700 23px/1.1 Georgia,serif}
+  h4{margin:18px 0 7px;font-size:16px}
+  p{margin:9px 0}
+  .lead{max-width:870px;color:var(--muted);font-size:17px}
+  .grid-2,.grid-3,.grid-4{display:grid;gap:13px}
+  .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .card{padding:21px;border:1px solid var(--line);background:var(--white);break-inside:avoid}
+  .card h3{margin-top:0}
+  .card p:last-child{margin-bottom:0}
+  .stat{border-top:4px solid var(--teal)}
+  .stat strong{display:block;color:var(--teal);font:700 37px/1 Georgia,serif}
+  .stat span{display:block;margin-top:9px;font-weight:800}
+  .stat small{display:block;margin-top:7px;color:var(--muted)}
+  .tag{display:inline-block;padding:4px 7px;color:var(--teal);border:1px solid #9bc9be;background:var(--mint);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+  .tag.warn{color:#714a03;border-color:#e3bd63;background:var(--gold-soft)}
+  .tag.risk{color:var(--red);border-color:#dfaaa6;background:var(--red-soft)}
+  .architecture{display:grid;grid-template-columns:1fr 42px 1fr 42px 1fr;align-items:stretch}
+  .node{padding:19px;border:1px solid var(--line);background:var(--white)}
+  .node strong{display:block;margin-bottom:7px;color:var(--teal);font-size:17px}
+  .arrow{display:grid;place-items:center;color:var(--teal);font-size:27px}
+  ul,ol{padding-left:23px}
+  li{margin:5px 0}
+  .compact li{margin:2px 0}
+  .invariant{padding:15px 17px;border-left:4px solid var(--teal);background:var(--mint)}
+  .invariant+.invariant{margin-top:8px}
+  .file-tree{padding:20px;color:#d8e7e3;background:var(--code);white-space:pre-wrap;line-height:1.5;border-left:5px solid var(--teal)}
+  pre{margin:12px 0;padding:18px;overflow-wrap:anywhere;white-space:pre-wrap;color:#d8e7e3;background:var(--code);border-left:5px solid var(--teal);font-size:12px;line-height:1.5}
+  .table-wrap{overflow-x:auto;border:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse;background:var(--white);font-size:13px}
+  th,td{padding:11px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+  th{color:#40504c;background:#eaf0ed;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  tbody tr:last-child td{border-bottom:0}
+  .ok{color:var(--teal);font-weight:800}.pending{color:var(--gold);font-weight:800}.blocked{color:var(--red);font-weight:800}
+  .contract{display:grid;grid-template-columns:180px 1fr;border:1px solid var(--line);background:var(--white)}
+  .contract dt,.contract dd{margin:0;padding:10px 12px;border-bottom:1px solid var(--line)}
+  .contract dt{color:var(--teal);background:#eaf2ef;font-family:Consolas,monospace;font-weight:800}
+  .contract dt:last-of-type,.contract dd:last-of-type{border-bottom:0}
+  .decision{padding:22px;color:white;background:#28413d;border-left:7px solid #89cabb}
+  .decision h3{margin-top:0}.decision p{color:#dce8e5}
+  .warning{padding:19px;border-left:5px solid var(--gold);background:var(--gold-soft)}
+  .danger{padding:19px;border-left:5px solid var(--red);background:var(--red-soft)}
+  .runbook{counter-reset:step}
+  .runbook>li{position:relative;margin:10px 0;padding:14px 15px 14px 51px;list-style:none;border:1px solid var(--line);background:var(--white)}
+  .runbook>li:before{counter-increment:step;content:counter(step);position:absolute;left:13px;top:13px;width:27px;height:27px;display:grid;place-items:center;color:white;background:var(--teal);font-weight:800}
+  .checkpoint{position:relative;margin-left:13px;padding:0 0 24px 30px;border-left:2px solid var(--line)}
+  .checkpoint:before{content:"";position:absolute;left:-8px;top:4px;width:14px;height:14px;background:var(--teal);box-shadow:0 0 0 4px var(--paper)}
+  .checkpoint.future:before{background:var(--gold)}
+  .checkpoint h3{margin:0 0 5px;font-size:19px}
+  .checkpoint p{color:var(--muted)}
+  .page-break{break-before:page}
+  footer{margin-top:60px;padding:25px 0;border-top:1px solid var(--line);color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:20px}
+  @media(max-width:800px){.cover{padding:35px;min-height:620px}.cover h1{font-size:53px}.cover-meta,.grid-4,.grid-3,.grid-2{grid-template-columns:1fr}.toc{columns:1}.section-head{grid-template-columns:1fr}.architecture{grid-template-columns:1fr}.arrow{transform:rotate(90deg);min-height:32px}.contract{grid-template-columns:1fr}.contract dt{border-bottom:0}}
+  @page{size:Letter;margin:.58in .56in .64in}
+  @media print{
+    body{background:#fff;font-size:9.2pt;line-height:1.42;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .shell{width:100%}.cover{min-height:9.4in;padding:.55in;break-after:page}.cover h1{font-size:49pt}.cover .deck{font-size:16pt}.cover-meta{grid-template-columns:repeat(4,1fr)}
+    main{padding:0}.toc{break-after:page}.section-head{break-after:avoid}.card,.node,.invariant,.warning,.danger,.decision,.checkpoint,pre,.table-wrap{break-inside:avoid}
+    section{padding-top:25px}h2{font-size:25pt}h3{font-size:16pt}.page-break{break-before:page}a{color:inherit;text-decoration:none}
+    footer{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="cover">
+    <p class="kicker">Engineering handoff · Internal</p>
+    <h1>Docs to Markdown</h1>
+    <p class="deck">Architecture, algorithms, API contracts, quality evidence, deployment controls, runbooks, recovery, and remaining milestones.</p>
+    <div class="cover-meta">
+      <div><strong>v0.1.0</strong><span>Application version</span></div>
+      <div><strong>Checkpoint 15</strong><span>Current completed phase</span></div>
+      <div><strong>36 passing</strong><span>Automated tests</span></div>
+      <div><strong>2026-08-17</strong><span>Evidence date</span></div>
+    </div>
+  </header>
+
+  <main>
+    <div class="notice"><strong>Release boundary:</strong> the core converter is validated for a controlled internal pilot. Formal human fidelity sign-off, real OCR-provider evaluation, GitHub source-control and tester workflow, and enterprise security controls remain open milestones. External hosting, OpenShift rollout, and Windows packaging are out of scope.</div>
+
+    <section id="lean-projection">
+      <div class="section-head"><span class="section-num">00 · Projection</span><div><h2>Lean application footprint projection</h2><p class="lead">This projection describes how to reduce the application from a self-contained Windows development workspace to a small source package and a materially smaller runtime. Measured facts, calculated outcomes, and estimates are labeled separately. No dependency replacement has been implemented yet.</p></div></div>
+
+      <div class="grid-4">
+        <div class="card stat"><strong>384.14 MiB</strong><span>Current workspace</span><small>Measured after Safe Lean cleanup</small></div>
+        <div class="card stat"><strong>213.65 MiB</strong><span>Current virtual environment</span><small>Measured runtime + test/site packages</small></div>
+        <div class="card stat"><strong>170.18 MiB</strong><span>Local Python + uv tools</span><small>Measured; required by current .venv linkage</small></div>
+        <div class="card stat"><strong>0.311 MiB</strong><span>Essential source/config/tests</span><small>Measured, excluding environments and this document</small></div>
+      </div>
+
+      <h3>What “small” means in each deployment model</h3>
+      <div class="table-wrap"><table><thead><tr><th>Artifact</th><th>What it contains</th><th>Projected size</th><th>Can it run alone?</th><th>Confidence</th></tr></thead><tbody>
+        <tr><td>Lean source package</td><td>Source, static UI, tests, lockfile, Docker/OpenShift definitions, compact docs</td><td><strong>&lt;1 MiB</strong></td><td>No; requires Python and packages</td><td><span class="tag">Measured basis</span></td></tr>
+        <tr><td>Current self-contained Windows workspace</td><td>Lean source + project-local Python + uv + current .venv</td><td><strong>384.14 MiB</strong></td><td>Yes</td><td><span class="tag">Measured</span></td></tr>
+        <tr><td>Externally managed runtime</td><td>Lean source only; Python/uv/environment live outside this folder</td><td><strong>&lt;1 MiB in project</strong></td><td>Only when the external runtime is present</td><td><span class="tag">Calculated</span></td></tr>
+        <tr><td>Lean development environment</td><td>Current app with MarkItDown replaced; includes test dependencies</td><td><strong>80–100 MiB</strong></td><td>Yes, with external/system Python or bundled Python</td><td><span class="tag warn">Estimated</span></td></tr>
+        <tr><td>Lean production environment</td><td>Runtime dependencies only; no pytest/httpx/MkDocs</td><td><strong>70–90 MiB</strong></td><td>Yes, with Python runtime</td><td><span class="tag warn">Estimated</span></td></tr>
+        <tr><td>Self-contained lean Windows folder</td><td>Lean production environment + minimal Python distribution; uv optional</td><td><strong>120–180 MiB</strong></td><td>Yes</td><td><span class="tag warn">Estimated</span></td></tr>
+        <tr><td>Container image</td><td>Python slim base + lean production environment + system library</td><td><strong>180–300 MiB</strong></td><td>Yes</td><td><span class="tag warn">Estimated until built</span></td></tr>
+      </tbody></table></div>
+
+      <div class="warning"><strong>Important linkage constraint:</strong> the current <code>.venv\pyvenv.cfg</code> points to <code>C:\Docs to MK 1.0\.tools\python312</code>, and its standard library resolves there. Therefore <code>.tools</code> and <code>.venv</code> cannot be separated by deleting only <code>.tools</code>. To externalize the toolchain safely, install/manage Python 3.12 elsewhere and rebuild the virtual environment against that interpreter.</div>
+
+      <h3>Measured dependency reduction opportunity</h3>
+      <p>MarkItDown itself is small, but it requires Magika for file identification. Magika requires ONNX Runtime, NumPy, SymPy, and supporting inference packages. The current application already knows whether an upload is DOCX or PDF from its validated suffix, so the ML file-detection chain provides little value for this bounded two-format application.</p>
+      <div class="table-wrap"><table><thead><tr><th>Removable candidate</th><th>Measured installed size</th><th>Why it can disappear</th></tr></thead><tbody>
+        <tr><td>Magika Windows executable</td><td>22.699 MiB</td><td>Only present through MarkItDown/Magika; API already routes by validated suffix</td></tr>
+        <tr><td>ONNX Runtime</td><td>31.702 MiB including metadata</td><td>Inference engine required by Magika, not by DOCX/PDF conversion logic</td></tr>
+        <tr><td>SymPy + mpmath</td><td>27.442 MiB</td><td>ONNX Runtime support closure</td></tr>
+        <tr><td>NumPy + OpenBLAS + metadata</td><td>41.766 MiB</td><td>Magika/ONNX numerical runtime; native PDF converter does not import NumPy</td></tr>
+        <tr><td>Magika package + metadata</td><td>3.236 MiB</td><td>File detection becomes unnecessary after MarkItDown removal</td></tr>
+        <tr><td>MarkItDown package + metadata</td><td>0.426 MiB</td><td>Replaced by direct DOCX conversion; PDF native route becomes authoritative without fallback</td></tr>
+        <tr><td>Remaining exclusive support packages</td><td>3.34 MiB</td><td>coloredlogs, humanfriendly, pyreadline3, flatbuffers, protobuf package, dotenv, requests, defusedxml</td></tr>
+        <tr><td><strong>Measured lower-bound candidate removal</strong></td><td><strong>130.61 MiB</strong></td><td>Exact installed bytes in the current environment; final resolver result must be measured from a clean rebuild</td></tr>
+      </tbody></table></div>
+
+      <h3>Replacement components already present</h3>
+      <div class="grid-3">
+        <div class="card"><span class="tag">Measured</span><h3>Mammoth</h3><p><strong>0.405 MiB</strong> including metadata. Converts DOCX to semantic HTML and is already installed transitively by MarkItDown’s DOCX extra.</p></div>
+        <div class="card"><span class="tag">Measured</span><h3>markdownify</h3><p><strong>0.079 MiB</strong> including metadata. Converts Mammoth HTML to Markdown and is already installed transitively.</p></div>
+        <div class="card"><span class="tag">Retained</span><h3>HTML/XML support</h3><p>Beautiful Soup/SoupSieve remain for markdownify. lxml remains required by python-docx, so removing MarkItDown does not remove them.</p></div>
+      </div>
+
+      <h3>Calculated environment outcome</h3>
+      <p>Subtracting the exact 130.61 MiB exclusive candidate closure from the measured 213.65 MiB environment gives a <strong>calculated residual of 83.04 MiB</strong>. This is not yet a validated build size. A clean resolver may retain or remove additional shared metadata and console launchers. The engineering target should therefore be:</p>
+      <ul><li><strong>Development target:</strong> 80–100 MiB with all 36 regression tests available.</li><li><strong>Production target:</strong> 70–90 MiB with only runtime dependencies.</li><li><strong>No-go threshold:</strong> if the clean production environment remains above 110 MiB, remeasure the dependency tree before accepting the migration.</li></ul>
+
+      <h3>Runtime memory projection</h3>
+      <div class="table-wrap"><table><thead><tr><th>Metric</th><th>Current measured value</th><th>Projected lean value</th><th>Interpretation</th></tr></thead><tbody>
+        <tr><td>Working set</td><td>36.77 MiB</td><td>25–40 MiB estimated</td><td>Current physical working set is already modest; removing installed packages may not materially lower idle working set</td></tr>
+        <tr><td>Private committed memory</td><td>427.61 MiB after conversion activity</td><td>100–250 MiB estimated</td><td>Could fall when ONNX/NumPy/Magika are never imported, but Python allocator behavior requires measured cold/warm tests</td></tr>
+        <tr><td>Virtual address space</td><td>Approximately 4.7 GiB previously observed</td><td>Not a useful size target</td><td>Mostly address reservation and mappings, not physical RAM</td></tr>
+      </tbody></table></div>
+      <p><strong>Measurement rule:</strong> compare fresh-process idle, first DOCX, first PDF, repeated DOCX/PDF, and mixed batch working set/private bytes. Do not promise RAM savings based solely on package disk size.</p>
+
+      <h3>Proposed lean architecture</h3>
+      <div class="architecture"><div class="node"><strong>DOCX</strong>python-docx heading preprocessing → Mammoth semantic HTML → markdownify → Markdown with image data URIs</div><div class="arrow">→</div><div class="node"><strong>Shared application</strong>Existing FastAPI, renderer, UI, batch, limits, ZIP manifest, and exact parity contracts remain unchanged</div><div class="arrow">→</div><div class="node"><strong>PDF</strong>Existing pdfplumber + pypdfium2 + Pillow route; Tesseract optional; controlled failure instead of MarkItDown fallback</div></div>
+
+      <h3>Migration stages and rollback points</h3>
+      <ol class="runbook">
+        <li><strong>Freeze the baseline.</strong> Preserve the verified backup at <code>C:\MKDocsbackup\Docs-to-MK-safe-lean-20260817-203034</code>. Record current 36-test results, current Markdown outputs for generated fixtures, environment size, startup time, and process memory.</li>
+        <li><strong>Build a parallel DOCX candidate.</strong> Add a private candidate function using the existing <code>_prepare_docx</code>, Mammoth image conversion to data URIs, and markdownify. Do not replace <code>convert_docx</code> yet.</li>
+        <li><strong>Run old/new parity in the same environment.</strong> Compare text tokens, heading levels/counts, list items, link targets, table rows/cells, image count and decoded bytes, Unicode, emphasis, and empty-input behavior.</li>
+        <li><strong>Resolve formatting deltas narrowly.</strong> Normalize only proven differences such as trailing blank lines, Markdown table spacing, image alt text, or list indentation. Do not create a second general-purpose DOCX parser.</li>
+        <li><strong>Promote the candidate.</strong> Switch the authoritative <code>convert_docx</code> only after all behavioral gates pass. API and batch must continue calling that one function.</li>
+        <li><strong>Remove the PDF MarkItDown fallback.</strong> Keep the existing native PDF and scanned-page visual fallback. On converter-level failure, return a controlled conversion error. Add a focused regression test for the new failure contract.</li>
+        <li><strong>Change declared dependencies.</strong> Remove <code>markitdown[docx,pdf]</code>; add direct constraints for Mammoth and markdownify. Keep pdfplumber, pypdfium2, Pillow, python-docx, FastAPI, renderer, multipart, and Uvicorn.</li>
+        <li><strong>Regenerate the lockfile in isolation.</strong> Build a separate clean environment; do not mutate/delete the working environment until the candidate is validated.</li>
+        <li><strong>Measure clean artifacts.</strong> Record dependency tree, .venv size, wheel size, startup, idle/converted memory, DOCX/PDF timings, and batch behavior.</li>
+        <li><strong>Cut over or roll back.</strong> If any no-go gate fails, restore converter/dependencies/lockfile and retain MarkItDown. The verified backup remains the final recovery path.</li>
+      </ol>
+
+      <h3>Mandatory parity gates</h3>
+      <div class="grid-2">
+        <div class="card"><span class="tag">Must pass</span><ul><li>All 36 current tests, adjusted only for an explicitly approved PDF failure contract.</li><li>Exact direct/API parity for DOCX and PDF.</li><li>Exact batch entry parity with the corresponding direct converter.</li><li>No loss of generated-fixture text tokens.</li><li>Heading levels/counts equal current behavior.</li><li>List item and nesting counts equal current behavior.</li><li>Hyperlink target set equal current behavior.</li><li>Table row/cell content equal current behavior.</li><li>Embedded image count and decoded bytes equal current behavior.</li><li>Safe preview behavior unchanged.</li></ul></div>
+        <div class="card"><span class="tag risk">No-go conditions</span><ul><li>Any DOCX fixture loses text, links, tables, or images.</li><li>Visual heading inference becomes materially flatter or noisier.</li><li>Mammoth image callback cannot preserve current data URI behavior.</li><li>PDF converter silently returns partial/empty output when fallback is removed.</li><li>Native PDF or scanned visual fallback regresses.</li><li>Clean production environment exceeds 110 MiB without an explained shared dependency.</li><li>Conversion latency worsens by more than 25% on generated fixtures.</li><li>Cold or post-conversion memory increases.</li></ul></div>
+      </div>
+
+      <h3>Production/development split</h3>
+      <ul><li>The Dockerfile already runs <code>uv sync --frozen --no-dev --no-editable</code>, so pytest/httpx are excluded from production.</li><li>The current local <code>.venv</code> includes test dependencies and may include previously selected optional groups; it is not a production-size measurement.</li><li>Keep one lockfile, but validate two clean environments: runtime only and runtime + test.</li><li>Do not manually delete packages from <code>site-packages</code>; update direct dependencies, regenerate <code>uv.lock</code>, and create a clean environment.</li></ul>
+
+      <h3>Toolchain externalization options</h3>
+      <div class="table-wrap"><table><thead><tr><th>Option</th><th>Project-folder result</th><th>Trade-off</th><th>Recommendation</th></tr></thead><tbody>
+        <tr><td>Keep current project-local Python + uv</td><td>Adds 170.18 MiB</td><td>Works offline and is immediately reproducible</td><td>Keep until lean dependency migration is validated</td></tr>
+        <tr><td>System/managed Python 3.12 + system uv</td><td>Project folder under 1 MiB before generated .venv</td><td>Fresh machines require documented bootstrap and network/package access</td><td>Preferred for source repository/CI</td></tr>
+        <tr><td>Environment outside project</td><td>Project folder under 1 MiB; runtime stored centrally</td><td>Path/ownership/version management moves to platform tooling</td><td>Good for managed engineering workstations</td></tr>
+        <tr><td>Container-only distribution</td><td>Source context under 1 MiB; image stores Python/dependencies</td><td>Image remains 180–300 MiB estimated and needs real build validation</td><td>Preferred for OpenShift hosting</td></tr>
+        <tr><td>Self-contained Windows package</td><td>120–180 MiB estimated</td><td>Largest distribution but lowest end-user setup friction</td><td>Evaluate in Windows packaging milestone</td></tr>
+      </tbody></table></div>
+
+      <h3>Decision projection</h3>
+      <div class="decision"><h3>Recommended engineering path</h3><p>First prototype Mammoth + markdownify in parallel and prove behavioral parity. If parity passes, remove MarkItDown and its 130.61 MiB measured exclusive dependency closure, rebuild clean runtime/test environments, and then externalize the linked <code>.tools</code>/<code>.venv</code> pair. This preserves a fast rollback and prevents “small” from becoming a synonym for “less capable.”</p></div>
+      <div style="height:10px"></div>
+      <div class="warning"><strong>Expected practical outcome:</strong> source distribution below 1 MiB; clean development environment around 80–100 MiB; clean production environment around 70–90 MiB; self-contained Windows package around 120–180 MiB; container around 180–300 MiB. Only the current baseline, the 130.61 MiB removable lower bound, and the 83.04 MiB calculated residual are established from measured local bytes. All final artifact sizes require a clean build.</div>
+    </section>
+
+    <nav class="toc" aria-label="Table of contents">
+      <h2>Table of contents</h2>
+      <ol>
+        <li><a href="#lean-projection">Lean application footprint projection</a></li><li><a href="#status">Current status</a></li><li><a href="#principles">Engineering invariants</a></li><li><a href="#structure">Repository structure</a></li><li><a href="#environment">Environment and setup</a></li><li><a href="#architecture">Runtime architecture</a></li><li><a href="#docx">DOCX pipeline</a></li><li><a href="#pdf">PDF pipeline</a></li><li><a href="#ocr">Scanned PDF and OCR</a></li><li><a href="#batch">Batch conversion</a></li><li><a href="#api">API contracts</a></li><li><a href="#ui">UI and renderer safety</a></li><li><a href="#quality">Quality model and evidence</a></li><li><a href="#tests">Test suite</a></li><li><a href="#decisions">Experiments and decisions</a></li><li><a href="#deployment">Docker and OpenShift</a></li><li><a href="#runbooks">Operational runbooks</a></li><li><a href="#troubleshooting">Troubleshooting</a></li><li><a href="#security">Security and data handling</a></li><li><a href="#recovery">Recovery and preservation</a></li><li><a href="#roadmap">Remaining milestones</a></li><li><a href="#handoff">Engineer handoff checklist</a></li><li><a href="#appendix">Appendix</a></li>
+      </ol>
+    </nav>
+
+    <section id="status">
+      <div class="section-head"><span class="section-num">01 · Status</span><div><h2>Current engineering state</h2><p class="lead">The product supports local single and mixed-batch DOCX/PDF conversion using one authoritative converter per format. The code, package, API, corpus gates, and deployment definitions are tested; distribution and production operations remain deliberately separate work.</p></div></div>
+      <div class="grid-4">
+        <div class="card stat"><strong>36</strong><span>Tests passing</span><small>Seven focused modules; one dependency-level deprecation warning</small></div>
+        <div class="card stat"><strong>10</strong><span>DOCX fixtures</span><small>100% technical pass and exact direct/API parity</small></div>
+        <div class="card stat"><strong>8 / 45</strong><span>PDF pilots / pages</span><small>Eight real guides covering 45 pages</small></div>
+        <div class="card stat"><strong>8 / 8</strong><span>PDF corpus gates</span><small>Links, images, text, tables, and direct/API parity</small></div>
+      </div>
+      <h3>Validated now</h3>
+      <div class="grid-2">
+        <div class="card"><span class="tag">Functional</span><ul><li>DOCX and born-digital PDF to Markdown.</li><li>Editable raw Markdown and safe rendered preview.</li><li>Individual Markdown download.</li><li>Mixed DOCX/PDF batch ZIP plus manifest.</li><li>Image-only page visual preservation.</li></ul></div>
+        <div class="card"><span class="tag">Engineering</span><ul><li>Exact direct/API parity.</li><li>Deterministic DOCX and PDF fidelity tests.</li><li>Real-document PDF corpus and visual contact sheets.</li><li>Locked wheel build with static assets verified.</li><li>Docker/OpenShift policy definitions and health endpoint.</li></ul></div>
+      </div>
+      <h3>Not release-validated</h3>
+      <div class="warning"><ul class="compact"><li>Formal human fidelity approval.</li><li>Real Tesseract OCR quality on scanned source documents.</li><li>Actual container image build, vulnerability scan, registry push, or OpenShift rollout.</li><li>Windows desktop packaging, signing, shortcuts, shutdown, and uninstall.</li><li>Authentication, authorization, retention, malware scanning, audit logging, telemetry, concurrency, and load limits.</li><li>Git repository, CI/CD pipeline, versioned release, and tested rollback.</li></ul></div>
+    </section>
+
+    <section id="principles">
+      <div class="section-head"><span class="section-num">02 · Invariants</span><div><h2>Engineering invariants</h2><p class="lead">These constraints are project architecture, not suggestions. New work should preserve them unless a checkpoint explicitly changes the contract.</p></div></div>
+      <div class="invariant"><strong>One authoritative conversion function per format.</strong> API, batch, desktop packaging, and future jobs call <code>convert_docx</code> or <code>convert_pdf</code>; do not fork conversion behavior.</div>
+      <div class="invariant"><strong>Exact direct/API parity.</strong> HTTP output must equal direct function output byte-for-byte for the same input.</div>
+      <div class="invariant"><strong>Technical success is not fidelity approval.</strong> Automated structure and coverage metrics never become “human reviewed.”</div>
+      <div class="invariant"><strong>Native semantics first.</strong> Use native document structure and PDF text geometry; targeted OCR/fallback only when measured extraction is weak; full-page visual fallback last.</div>
+      <div class="invariant"><strong>Optional providers fail closed.</strong> Missing OCR or experimental converters cannot break unrelated formats.</div>
+      <div class="invariant"><strong>Diagnostics stay outside Markdown.</strong> Route, warnings, duration, confidence, and review reasons belong in metadata, not published content.</div>
+      <div class="invariant"><strong>Real pilot documents remain local.</strong> Do not commit or upload internal documents without explicit approval.</div>
+      <div class="invariant"><strong>One approved checkpoint at a time.</strong> State purpose/files/validation, implement narrowly, validate, report, and stop for approval.</div>
+    </section>
+
+    <section id="structure">
+      <div class="section-head"><span class="section-num">03 · Layout</span><div><h2>Repository structure and ownership</h2><p class="lead">The workspace is intentionally small. Format ownership is explicit and web/batch layers are thin orchestration surfaces.</p></div></div>
+      <pre class="file-tree">C:\Docs to MK 1.0\
+├── src\docs_to_markdown\
+│   ├── __init__.py          Public convert_docx / convert_pdf exports
+│   ├── converter.py         Authoritative DOCX conversion
+│   ├── pdf_converter.py     Authoritative PDF conversion
+│   ├── ocr_adapter.py       Optional OCR protocol + Tesseract adapter
+│   ├── batch_converter.py   Batch orchestration + ZIP manifest
+│   ├── renderer.py          Safe Markdown-to-HTML preview
+│   ├── api.py               FastAPI routes, limits, static pages, health
+│   └── static\              index.html, batch.html, app.js, batch.js, app.css
+├── tests\                   Seven focused test modules
+├── docs\                    Engineering handoff source
+├── deploy\openshift.yaml    Deployment, Service, Route
+├── Dockerfile               Rootless locked production image definition
+├── .dockerignore            Excludes environments, tests, and private/generated data
+├── CONTAINER.md             Container/OpenShift runbook
+├── AGENTS.md                Project execution and quality rules
+├── pyproject.toml            Runtime/test dependencies and packaging
+└── uv.lock                  Locked dependency graph
+
+Archived outside the lean project:
+C:\MKDocsbackup\Docs-to-MK-safe-lean-20260817-203034\
+└── review\                  Pilots, corpus reports, visual audit, checkpoints, prior docs</pre>
+      <div class="table-wrap"><table><thead><tr><th>Module</th><th>Owns</th><th>Must not own</th></tr></thead><tbody>
+        <tr><td><code>converter.py</code></td><td>DOCX preprocessing and MarkItDown conversion</td><td>HTTP, UI, batch ZIP, persistence</td></tr>
+        <tr><td><code>pdf_converter.py</code></td><td>PDF geometry, semantics, images, tables, fallback routing</td><td>API status codes or batch policy</td></tr>
+        <tr><td><code>ocr_adapter.py</code></td><td>Provider discovery and OCR invocation boundary</td><td>Page classification or Markdown publishing policy</td></tr>
+        <tr><td><code>batch_converter.py</code></td><td>Per-file routing, result isolation, names, manifest, archive</td><td>Format-specific conversion algorithms</td></tr>
+        <tr><td><code>renderer.py</code></td><td>Safe Markdown preview HTML</td><td>Source conversion</td></tr>
+        <tr><td><code>api.py</code></td><td>Routes, validation, size/count limits, HTTP responses</td><td>Duplicate format implementations</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="environment">
+      <div class="section-head"><span class="section-num">04 · Setup</span><div><h2>Environment, dependencies, and setup</h2><p class="lead">The current verified environment is Windows with a project-local Python and uv toolchain. Production packaging targets Python 3.12 slim Linux.</p></div></div>
+      <div class="grid-2">
+        <div class="card"><h3>Verified workstation</h3><ul><li>Windows 11.</li><li>Intel Core i5-1345U.</li><li>Approximately 15.6 GB RAM.</li><li>No NVIDIA GPU.</li><li>No Docker, Podman, Buildah, or <code>oc</code>.</li><li>No local Tesseract executable.</li></ul></div>
+        <div class="card"><h3>Project toolchain</h3><ul><li>CPython 3.12.10 under <code>.tools\python312</code>.</li><li>uv 0.12.5 under <code>.tools\uv\uv.exe</code>.</li><li>Virtual environment: <code>.venv</code>.</li><li>Hatchling wheel build backend.</li><li><code>uv.lock</code> is authoritative for frozen installs.</li></ul></div>
+      </div>
+      <h3>Runtime dependencies</h3>
+      <div class="table-wrap"><table><thead><tr><th>Dependency</th><th>Constraint</th><th>Role</th></tr></thead><tbody>
+        <tr><td>fastapi</td><td>&gt;=0.116,&lt;1</td><td>HTTP/API framework</td></tr><tr><td>uvicorn</td><td>&gt;=0.35,&lt;1</td><td>ASGI server</td></tr><tr><td>markitdown[docx,pdf]</td><td>==0.1.7</td><td>DOCX engine and PDF final fallback</td></tr><tr><td>python-docx</td><td>&gt;=1.2,&lt;2</td><td>Temporary DOCX heading preprocessing</td></tr><tr><td>pdfplumber</td><td>&gt;=0.11.9,&lt;1</td><td>PDF text, geometry, links, images, tables</td></tr><tr><td>pypdfium2</td><td>&gt;=5.10,&lt;6</td><td>Deterministic PDF page rendering</td></tr><tr><td>Pillow</td><td>&gt;=11,&lt;13</td><td>Image crop, resize, encode, OCR input</td></tr><tr><td>markdown-it-py</td><td>&gt;=4,&lt;5</td><td>Safe preview renderer</td></tr><tr><td>python-multipart</td><td>&gt;=0.0.20,&lt;1</td><td>Upload parsing</td></tr>
+      </tbody></table></div>
+      <h3>Setup commands</h3>
+      <pre>cd "C:\Docs to MK 1.0"
+$env:UV_SYSTEM_CERTS = "true"   # needed when corporate TLS interception affects PyPI
+.\.tools\uv\uv.exe sync --extra test --python .\.venv\Scripts\python.exe</pre>
+      <p>The only known persistent warning is a Starlette deprecation warning for the current <code>httpx</code>-backed TestClient. It is dependency-level and does not fail tests.</p>
+    </section>
+
+    <section id="architecture" class="page-break">
+      <div class="section-head"><span class="section-num">05 · Runtime</span><div><h2>Runtime architecture and data flow</h2><p class="lead">The application is stateless. Source bytes, intermediate streams, output Markdown, and batch ZIPs remain in memory.</p></div></div>
+      <h3>Single conversion</h3>
+      <div class="architecture"><div class="node"><strong>Browser / API client</strong>Multipart DOCX or PDF upload</div><div class="arrow">→</div><div class="node"><strong>FastAPI</strong>Validate extension and non-empty content; dispatch by suffix</div><div class="arrow">→</div><div class="node"><strong>Authoritative converter</strong>Return Markdown and output filename</div></div>
+      <h3>Review loop</h3>
+      <div class="architecture"><div class="node"><strong>Markdown textarea</strong>User edits raw output</div><div class="arrow">→</div><div class="node"><strong>/api/render</strong>Safe server-side CommonMark rendering</div><div class="arrow">→</div><div class="node"><strong>Preview / download</strong>Rendered HTML and local .md Blob download</div></div>
+      <h3>Batch conversion</h3>
+      <div class="architecture"><div class="node"><strong>Mixed files</strong>Up to 25 files and 100 MB total</div><div class="arrow">→</div><div class="node"><strong>convert_batch</strong>Independent conversion and failure isolation</div><div class="arrow">→</div><div class="node"><strong>ZIP stream</strong>Successful .md files plus manifest.json</div></div>
+      <h3>Statelessness</h3>
+      <ul><li>Converters accept <code>bytes</code> and return <code>str</code>.</li><li>DOCX preparation uses <code>BytesIO</code>; it never modifies the source.</li><li>PDF processing opens byte streams and renders pages in memory.</li><li>Batch archives use <code>BytesIO</code> and <code>ZipFile.writestr</code>.</li><li>The web service does not persist uploads or outputs.</li><li>Container root filesystem can remain read-only; OpenShift mounts ephemeral <code>/tmp</code> for runtime compatibility.</li></ul>
+    </section>
+
+    <section id="docx">
+      <div class="section-head"><span class="section-num">06 · DOCX</span><div><h2>DOCX conversion pipeline</h2><p class="lead"><code>convert_docx(content: bytes) -&gt; str</code> is the sole DOCX conversion authority.</p></div></div>
+      <ol class="runbook">
+        <li><strong>Reject empty content.</strong> Raise <code>ValueError("DOCX content cannot be empty")</code>.</li>
+        <li><strong>Open an in-memory document.</strong> <code>python-docx</code> parses <code>BytesIO(content)</code>.</li>
+        <li><strong>Infer only missing semantic headings.</strong> Existing Heading/Title styles are left alone; list styles and numbered paragraphs are excluded.</li>
+        <li><strong>Prepare a temporary copy.</strong> For inferred headings only, apply <code>Heading N</code> and clear run-level bold, size, and color in the temporary document to avoid duplicate Markdown styling.</li>
+        <li><strong>Convert with MarkItDown.</strong> Disable plugins, supply extension/MIME metadata, and set <code>keep_data_uris=True</code>.</li>
+        <li><strong>Return MarkItDown Markdown unchanged.</strong> API and batch consume the exact same result.</li>
+      </ol>
+      <h3>Heading inference rules</h3>
+      <div class="table-wrap"><table><thead><tr><th>Condition</th><th>Result</th></tr></thead><tbody>
+        <tr><td>Empty paragraph or style begins Heading/Title</td><td>No inference</td></tr><tr><td>Style begins List, numbering properties exist, or not every visible run is explicitly bold</td><td>No inference</td></tr><tr><td>Maximum explicit font size ≥17 pt</td><td>Heading 1</td></tr><tr><td>Maximum explicit font size ≥15 pt</td><td>Heading 2</td></tr><tr><td>Text ≤60 characters and does not end with <code>: . ; ! ?</code></td><td>Heading 3</td></tr><tr><td>Anything else</td><td>Normal paragraph</td></tr>
+      </tbody></table></div>
+      <h3>Preserved and bounded behavior</h3>
+      <div class="grid-2"><div class="card"><span class="tag">Validated</span><ul><li>Semantic headings and inferred visual headings.</li><li>Bold/italic emphasis.</li><li>Bulleted and numbered lists.</li><li>Unicode and external hyperlinks.</li><li>Tables and embedded raster images.</li></ul></div><div class="card"><span class="tag warn">Known boundary</span><ul><li>Markdown is semantic, not pixel-exact Word layout.</li><li>Colors, exact spacing, pagination, and positioned objects flatten.</li><li>One deterministic special-character fixture remains review-flagged.</li><li>Native editable Office chart objects are not independently reconstructed.</li></ul></div></div>
+    </section>
+
+    <section id="pdf" class="page-break">
+      <div class="section-head"><span class="section-num">07 · PDF</span><div><h2>Native PDF conversion pipeline</h2><p class="lead"><code>convert_pdf(content: bytes) -&gt; str</code> first attempts the geometry-aware native route and uses MarkItDown only as a final converter-level fallback.</p></div></div>
+      <h3>Document pre-pass</h3>
+      <ul><li>Open the byte stream with pdfplumber and pypdfium2.</li><li>For each page, collect text lines in the top 10% and bottom 8%.</li><li>Normalize candidate furniture by lowercasing, collapsing whitespace, and replacing digits with <code>#</code>.</li><li>Text repeated at least twice in those regions is removed from page output.</li><li>Maintain a document-wide SHA-256 set for image deduplication.</li></ul>
+      <h3>Per-page extraction</h3>
+      <ol class="runbook"><li><strong>Extract and reserve table boxes.</strong> pdfplumber identifies tables first; overlapping text lines are not emitted twice.</li><li><strong>Extract formatted lines.</strong> Character data provides text, x/y rectangles, font name, size, weight, and annotation overlap.</li><li><strong>Estimate body size and margin.</strong> Body size is the median visible character size; body-left is the minimum x-position among body-sized lines.</li><li><strong>Classify blocks.</strong> Detect lists, headings, form-like bold fields, paragraph continuations, and separate paragraphs.</li><li><strong>Render images.</strong> Render page at 2×, crop source image boxes, rescale PDF points to CSS pixels at 96/72, optimize PNG, hash, deduplicate, and embed as base64.</li><li><strong>Assemble in reading order.</strong> Sort blocks by vertical top and join with blank lines; add page comments after page 1.</li></ol>
+      <h3>Formatting and structure rules</h3>
+      <div class="table-wrap"><table><thead><tr><th>Feature</th><th>Implementation</th></tr></thead><tbody>
+        <tr><td>Word spacing</td><td>Insert a space when the x-gap exceeds <code>max(0.8, character_size × 0.08)</code>.</td></tr><tr><td>Style grouping</td><td>Group adjacent characters by bold, italic, and URI; output <code>**</code>, <code>*</code>, or <code>***</code>.</td></tr><tr><td>Link matching</td><td>Match character rectangle to annotation rectangle; URL-encode while preserving URI-safe characters.</td></tr><tr><td>Ordered list</td><td>Recognize <code>1.</code> and <code>1)</code>.</td></tr><tr><td>Bullet list</td><td>Recognize common circle/square/private-use glyphs and <code>+ * -</code>; indented <code>o </code> is accepted beyond body-left + 8 pt.</td></tr><tr><td>List nesting</td><td>Track contiguous x-position levels with 3-point tolerance; reset after a vertical gap &gt; body size ×1.25.</td></tr><tr><td>Large heading</td><td>Size ≥ <code>max(18, body ×1.55)</code>; first qualifying page-1 heading is H1, later large headings H2.</td></tr><tr><td>Left heading</td><td>x ≤ body-left +3, text ≤90 chars, no sentence-ending punctuation, and size/weight threshold.</td></tr><tr><td>Paragraph join</td><td>Vertical gap ≤ <code>max(7, body ×0.8)</code> and x difference ≤ <code>max(3, body ×0.25)</code>.</td></tr>
+      </tbody></table></div>
+      <h3>Table normalization</h3>
+      <ul><li>Normalize whitespace and escape literal pipes.</li><li>Drop columns empty in every row.</li><li>For sparse grids with at least four columns and at most two populated cells per row, merge visual halves into two logical columns.</li><li>A one-column table becomes a blockquote/callout.</li><li>Rows with one populated value split table segments and become bold section labels.</li><li>Single-row multi-column grids receive an empty Markdown header rather than flattening to text.</li></ul>
+      <h3>Image and annotation behavior</h3>
+      <ul><li>Output image dimensions are source-proportional, avoiding the original 2× preview inflation.</li><li>Document-wide image hashes suppress repeated mastheads but preserve distinct screenshots.</li><li>HTTP, HTTPS, intranet, SharePoint, and mailto annotations are recovered.</li><li>Image alt text is currently generic: <code>Image from page N</code>; semantic caption generation is deferred.</li></ul>
+      <h3>Known PDF boundaries</h3>
+      <div class="warning"><ul class="compact"><li>Multi-column reading order follows pdfplumber extraction; there is no general column reflow engine.</li><li>Password-protected or malformed PDFs may fall through to MarkItDown and can still fail.</li><li>Complex merged-cell tables are normalized for readability, not reconstructed as exact layout.</li><li>Vector graphics and charts are preserved through available image/page rendering, not converted into editable chart data.</li><li>Page comments preserve location but are not a visual page-layout contract.</li></ul></div>
+    </section>
+
+    <section id="ocr">
+      <div class="section-head"><span class="section-num">08 · OCR</span><div><h2>Scanned PDF detection and optional OCR</h2><p class="lead">OCR is an adapter, not a mandatory dependency. Native PDFs never require it.</p></div></div>
+      <h3>Page classification</h3>
+      <pre>needs_ocr = native_visible_character_count &lt; 40
+            and largest_image_area / page_area &gt; 0.55</pre>
+      <p>This threshold correctly flagged the deterministic image-only fixture and produced zero false-positive pages across all eight born-digital pilot PDFs.</p>
+      <h3>Tesseract provider discovery</h3>
+      <ol><li>Use explicit <code>TESSERACT_CMD</code> when set.</li><li>Check <code>PATH</code>.</li><li>Check standard 64-bit and 32-bit Windows install paths.</li><li>Check the LocalAppData program path.</li><li>Probe <code>--version</code> with a 4-second timeout.</li><li>Return <code>None</code> when absent or invalid.</li></ol>
+      <h3>OCR invocation</h3>
+      <pre>tesseract stdin stdout -l eng --psm 6</pre>
+      <ul><li>Input is the 2× rendered page converted to RGB PNG in memory.</li><li>Timeout is 60 seconds.</li><li>Non-zero exit, OS error, timeout, or empty output returns <code>None</code>.</li><li>OCR paragraphs are normalized and escaped before Markdown insertion.</li><li>If OCR is unavailable, the page image remains in output; content is not silently discarded.</li></ul>
+      <div class="danger"><strong>Current state:</strong> Tesseract is not installed on the workstation, and real scanned-document OCR quality has not been evaluated. Do not claim searchable scanned-PDF support for v1 until Milestone 18 completes.</div>
+    </section>
+
+    <section id="batch">
+      <div class="section-head"><span class="section-num">09 · Batch</span><div><h2>Batch orchestration and manifest</h2><p class="lead">Batch conversion is intentionally thin. It calls the same converter mapping used by the single-file route and isolates failures by input.</p></div></div>
+      <h3>Limits and routing</h3>
+      <ul><li>API accepts at most 25 uploaded files.</li><li>Total uploaded bytes must not exceed 100 MB.</li><li>Supported suffixes are case-insensitive <code>.docx</code> and <code>.pdf</code>.</li><li>There is currently no explicit application-level single-file byte limit.</li><li>Conversion is sequential and in memory; concurrency/load behavior is not benchmarked.</li></ul>
+      <h3>Per-file statuses</h3>
+      <div class="table-wrap"><table><thead><tr><th>Status</th><th>Trigger</th><th>Archive behavior</th></tr></thead><tbody><tr><td>success</td><td>Converter returned Markdown</td><td>Write .md and record duration/bytes</td></tr><tr><td>unsupported</td><td>Suffix not DOCX/PDF</td><td>Manifest only</td></tr><tr><td>empty</td><td>Zero-byte content</td><td>Manifest only</td></tr><tr><td>error</td><td>Converter raised</td><td>Manifest only; other files continue</td></tr></tbody></table></div>
+      <h3>Output naming</h3><p>Output names use the input stem plus <code>.md</code>. Case-folded collisions receive <code>-2</code>, <code>-3</code>, and so on. An empty stem becomes <code>document.md</code>.</p>
+      <h3>Manifest schema</h3>
+      <pre>{
+  "batch_id": "12 hex characters",
+  "created_at": "UTC ISO-8601",
+  "total_files": 3,
+  "succeeded": 2,
+  "unsupported": 0,
+  "empty": 1,
+  "errors": 0,
+  "results": [{
+    "input_filename": "guide.pdf",
+    "output_filename": "guide.md",
+    "status": "success",
+    "duration_ms": 642.1,
+    "markdown_bytes": 22184,
+    "detail": null
+  }]
+}</pre>
+    </section>
+
+    <section id="api" class="page-break">
+      <div class="section-head"><span class="section-num">10 · API</span><div><h2>HTTP contracts and error behavior</h2><p class="lead">The API is currently intended for trusted local/internal use. There is no authentication or rate limiting.</p></div></div>
+      <dl class="contract">
+        <dt>GET /</dt><dd>Serve the single-file HTML application.</dd>
+        <dt>GET /batch</dt><dd>Serve the separate batch HTML application.</dd>
+        <dt>GET /health</dt><dd>Return <code>{"status":"ok"}</code>; used by Docker/OpenShift probes.</dd>
+        <dt>POST /api/render</dt><dd>JSON body <code>{"markdown":"..."}</code>; return <code>{"html":"..."}</code>.</dd>
+        <dt>POST /api/convert</dt><dd>Multipart field <code>file</code>; DOCX/PDF only; return output filename and Markdown.</dd>
+        <dt>POST /api/convert/batch</dt><dd>Repeated multipart field <code>files</code>; return <code>application/zip</code>.</dd>
+      </dl>
+      <h3>Single conversion response</h3><pre>HTTP 200
+{
+  "filename": "source-name.md",
+  "markdown": "# Converted content\n..."
+}</pre>
+      <h3>Error contracts</h3>
+      <div class="table-wrap"><table><thead><tr><th>Status</th><th>Condition</th><th>Detail</th></tr></thead><tbody><tr><td>400</td><td>Single file is empty</td><td>Document cannot be empty</td></tr><tr><td>400</td><td>Batch has more than 25 files</td><td>A batch can contain at most 25 files</td></tr><tr><td>413</td><td>Batch exceeds 100 MB</td><td>Batch size cannot exceed 100 MB</td></tr><tr><td>415</td><td>Single suffix unsupported</td><td>Only DOCX and PDF files are supported</td></tr><tr><td>422</td><td>Single converter exception</td><td>Document could not be converted</td></tr></tbody></table></div>
+      <h3>Parity requirement</h3><pre>POST /api/convert markdown == convert_docx(bytes) or convert_pdf(bytes)
+ZIP entry markdown == the corresponding direct converter result</pre>
+    </section>
+
+    <section id="ui">
+      <div class="section-head"><span class="section-num">11 · UI</span><div><h2>Browser UI and renderer safety</h2><p class="lead">The frontend is framework-free HTML, CSS, and JavaScript packaged inside the Python wheel.</p></div></div>
+      <div class="grid-2"><div class="card"><h3>Single page</h3><ul><li>Accepts one DOCX/PDF.</li><li>Calls <code>/api/convert</code>.</li><li>Places Markdown in an editable textarea.</li><li>Debounces preview rendering by 200 ms.</li><li>Downloads edited Markdown using a Blob.</li></ul></div><div class="card"><h3>Batch page</h3><ul><li>Accepts multiple DOCX/PDF files.</li><li>Displays selected filenames and approximate KB.</li><li>Posts all files in one request.</li><li>Downloads the server-generated ZIP using Content-Disposition filename.</li><li>Reports completion or API error in an ARIA live region.</li></ul></div></div>
+      <h3>Renderer configuration</h3><ul><li>CommonMark preset.</li><li>Raw HTML disabled.</li><li>Linkify disabled.</li><li>Typographer disabled.</li><li>Markdown tables enabled.</li><li>Unsafe <code>javascript:</code> links do not render as active links.</li><li>Raster image data URIs render; SVG data URIs are rejected.</li></ul>
+      <p>The preview is intentionally functional and restrained. It is not a pixel-perfect Word/PDF viewer.</p>
+    </section>
+
+    <section id="quality">
+      <div class="section-head"><span class="section-num">12 · Quality</span><div><h2>Quality model and corpus evidence</h2><p class="lead">Quality is tracked in two independent dimensions: technical operation and fidelity review.</p></div></div>
+      <div class="grid-2"><div class="card"><span class="tag">Technical</span><h3>Machine-verifiable</h3><ul><li>Converter completes or returns controlled failure.</li><li>Output is structurally testable.</li><li>Direct and API output are exact.</li><li>Expected links/images/tables/text tokens are present.</li><li>Package and deployment policies are testable.</li></ul></div><div class="card"><span class="tag warn">Fidelity</span><h3>Human decision</h3><ul><li>Does the output communicate the same meaning?</li><li>Are hierarchy and reading order acceptable?</li><li>Are images and tables useful in context?</li><li>Are known Markdown layout losses acceptable?</li><li>Status remains <code>not_reviewed</code> until a person decides.</li></ul></div></div>
+      <h3>DOCX corpus</h3><ul><li>10 deterministic documents.</li><li>Covers semantic/visual headings, emphasis, bullets, numbering, Unicode, hyperlinks, tables, and images.</li><li>Technical pass rate: 1.0.</li><li>Direct/API parity rate: 1.0.</li><li>9 clean; 1 review-required special-character rendering case.</li></ul>
+      <h3>PDF corpus</h3><ul><li>8 real operational documents totaling 45 pages.</li><li>45 unique source images and 24 unique source URIs.</li><li>8 detected table regions.</li><li>8/8 exact direct/API parity.</li><li>8/8 link completeness.</li><li>8/8 unique-image parity.</li><li>8/8 clean automated gates after excluding deliberately removed repeated page furniture.</li></ul>
+      <h3>Visual review process</h3><ol><li>Rasterize every source PDF page into contact sheets.</li><li>Convert each PDF with the authoritative converter.</li><li>Render exact Markdown into page-split browser contact sheets.</li><li>Compare source pixels with rendered output for hierarchy, sequence, images, links, lists, callouts, and tables.</li><li>Repair universal algorithm issues, then rerun focused tests and all corpus metrics.</li></ol>
+    </section>
+
+    <section id="tests" class="page-break">
+      <div class="section-head"><span class="section-num">13 · Tests</span><div><h2>Test suite and validation commands</h2><p class="lead">Seven modules currently produce 36 passing tests.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Module</th><th>Focus</th></tr></thead><tbody><tr><td><code>test_converter.py</code></td><td>Direct DOCX/PDF streams and empty rejection</td></tr><tr><td><code>test_api.py</code></td><td>Pages, static assets, render safety, errors, direct/API parity</td></tr><tr><td><code>test_docx_fidelity.py</code></td><td>DOCX hierarchy, emphasis, lists, Unicode, links, tables, images</td></tr><tr><td><code>test_pdf_fidelity.py</code></td><td>PDF hierarchy, HTTP/mail links, image sizing/dedup, tables, bullets</td></tr><tr><td><code>test_pdf_scanned.py</code></td><td>Scan classification, fake OCR provider, missing Tesseract, API parity</td></tr><tr><td><code>test_batch.py</code></td><td>Mixed formats, exact ZIP outputs, naming, manifest, limit, pages</td></tr><tr><td><code>test_container.py</code></td><td>Health endpoint, locked rootless Dockerfile, ignore policy, OpenShift security</td></tr></tbody></table></div>
+      <h3>Full project validation</h3><pre>$env:UV_SYSTEM_CERTS = "true"
+.\.tools\uv\uv.exe run --python .\.venv\Scripts\python.exe pytest -q `
+  tests\test_converter.py tests\test_api.py tests\test_docx_fidelity.py `
+  tests\test_pdf_fidelity.py tests\test_pdf_scanned.py tests\test_batch.py `
+  tests\test_container.py</pre>
+      <p><strong>Expected current result:</strong> <code>36 passed</code>, with one Starlette TestClient deprecation warning.</p>
+      <h3>Corpus evaluation</h3><pre>$env:PYTHONPATH = "src"
+.\.venv\Scripts\python.exe .\evaluate_docx_corpus.py
+.\.venv\Scripts\python.exe .\evaluate_pdf_corpus.py</pre>
+      <p>Reports are written under <code>review\</code>. Real pilot documents remain local.</p>
+    </section>
+
+    <section id="decisions">
+      <div class="section-head"><span class="section-num">14 · Decisions</span><div><h2>Experiments and rejected alternatives</h2><p class="lead">Alternatives were evaluated against the same portability and quality constraints rather than added speculatively.</p></div></div>
+      <div class="decision"><h3>MarkItDown retained for DOCX</h3><p>The validated DOCX route is stable, image-capable, API-parity tested, and already covered by a deterministic corpus.</p></div>
+      <div style="height:10px"></div>
+      <div class="decision"><h3>Native pdfplumber/pypdfium2 route retained for PDF</h3><p>Actual pilot geometry showed font hierarchy, annotations, image rectangles, and tables were recoverable without OCR or heavyweight model integration.</p></div>
+      <div style="height:10px"></div>
+      <div class="warning"><h3>Marker parked</h3><p>Marker 2.0.0 was isolated in <code>.marker-spike</code>. Its Windows DOCX path encountered GTK/Pango dependencies through WeasyPrint. Do not integrate, extend, or delete the spike without approval.</p></div>
+      <div style="height:10px"></div>
+      <div class="danger"><h3>Word COM PDF→DOCX rejected</h3><p>The simplest five-page PDF did not create a DOCX within 120 seconds and left an owned WINWORD process requiring forced cleanup. The route is session-dependent, Windows-specific, and incompatible with Docker/OpenShift goals. Evidence is in <code>review\pdf-word-com-comparison.json</code>.</p></div>
+      <h3>External Markdown benchmark</h3><p>Existing Markdown outputs in Downloads were analyzed for heading hierarchy, nested lists, image naming, links, and furniture removal. Useful semantic patterns were noted. Raw inline HTML styling was intentionally not adopted because the preview renderer disables raw HTML for safety.</p>
+    </section>
+
+    <section id="deployment">
+      <div class="section-head"><span class="section-num">15 · Deploy</span><div><h2>Docker and OpenShift design</h2><p class="lead">Deployment files are implemented and statically/package validated. No local container runtime is available, so an actual image run remains Milestone 17.</p></div></div>
+      <h3>Dockerfile</h3><ol><li>Copy uv 0.12.5 from the official uv image.</li><li>Use <code>python:3.12-slim-bookworm</code> builder.</li><li>Copy only <code>pyproject.toml</code>, <code>uv.lock</code>, and <code>src</code>.</li><li>Run <code>uv sync --frozen --no-dev --no-editable</code>.</li><li>Use a clean Python slim runtime and install <code>libgomp1</code>.</li><li>Copy only the virtual environment.</li><li>Set group ownership/permissions for OpenShift arbitrary UID compatibility.</li><li>Set <code>HOME=/tmp</code> and cache under <code>/tmp</code>.</li><li>Expose 8080; run as UID 1001.</li><li>Healthcheck <code>/health</code>; start one Uvicorn worker.</li></ol>
+      <h3>OpenShift security posture</h3><div class="grid-2"><div class="card"><ul><li><code>runAsNonRoot: true</code></li><li><code>allowPrivilegeEscalation: false</code></li><li>Drop all capabilities.</li><li>RuntimeDefault seccomp.</li><li>Read-only root filesystem.</li></ul></div><div class="card"><ul><li>Ephemeral <code>emptyDir</code> mounted at <code>/tmp</code>.</li><li>Readiness and liveness on <code>/health</code>.</li><li>250m CPU / 512Mi memory requests.</li><li>2 CPU / 2Gi memory limits.</li><li>TLS edge Route with HTTP redirect.</li></ul></div></div>
+      <h3>Verified without a container runtime</h3><ul><li>Wheel built successfully.</li><li>Non-editable isolated install imported the package.</li><li>All five static assets were present in the wheel.</li><li><code>/health</code> worked from the isolated install.</li><li>Static policy tests validate Docker and OpenShift controls.</li></ul>
+      <h3>Required Milestone 17 validation</h3><ul><li>Build and run the image.</li><li>Run with arbitrary UID and read-only root filesystem.</li><li>Exercise single and batch conversions.</li><li>Measure startup, image size, memory, and conversion behavior.</li><li>Scan dependencies/image for vulnerabilities and produce an SBOM if required.</li><li>Push to approved registry and perform OpenShift rollout.</li></ul>
+    </section>
+
+    <section id="runbooks" class="page-break">
+      <div class="section-head"><span class="section-num">16 · Runbook</span><div><h2>Operational runbooks</h2><p class="lead">Commands below are current for the verified workspace.</p></div></div>
+      <h3>Start local server</h3><pre>cd "C:\Docs to MK 1.0"
+.\.venv\Scripts\uvicorn.exe docs_to_markdown.api:app `
+  --app-dir src --host 127.0.0.1 --port 8000</pre>
+      <p>Open <code>http://127.0.0.1:8000/</code>, batch at <code>/batch</code>, and health at <code>/health</code>.</p>
+      <h3>Stop local server</h3><p>Stop the owned Uvicorn process/terminal. Do not terminate unrelated Python processes. Confirm port 8000 no longer has a listener.</p>
+      <h3>Build wheel</h3><pre>$env:UV_SYSTEM_CERTS = "true"
+.\.tools\uv\uv.exe build --wheel --out-dir dist</pre>
+      <h3>Build and run container (when Docker exists)</h3><pre>docker build -t docs-to-markdown:latest .
+docker run --rm -p 8080:8080 docs-to-markdown:latest
+curl http://127.0.0.1:8080/health</pre>
+      <h3>OpenShift deployment (after registry push)</h3><pre>oc apply -f deploy/openshift.yaml
+oc set image deployment/docs-to-markdown app=&lt;registry&gt;/docs-to-markdown:&lt;tag&gt;
+oc rollout status deployment/docs-to-markdown
+oc get route docs-to-markdown</pre>
+      <h3>Configure optional Tesseract</h3><pre>$env:TESSERACT_CMD = "C:\Program Files\Tesseract-OCR\tesseract.exe"
+&amp; $env:TESSERACT_CMD --version</pre>
+      <p>Run scanned-PDF focused tests before calling OCR supported.</p>
+    </section>
+
+    <section id="troubleshooting">
+      <div class="section-head"><span class="section-num">17 · Support</span><div><h2>Troubleshooting guide</h2><p class="lead">Start with the smallest discriminating check. Avoid broad environment changes until the owning layer is identified.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Symptom</th><th>Likely layer</th><th>Focused check</th><th>Action</th></tr></thead><tbody>
+        <tr><td>415 response</td><td>API validation</td><td>Filename suffix</td><td>Use .docx or .pdf; MIME alone does not route.</td></tr>
+        <tr><td>400 empty</td><td>Upload/source</td><td>File byte size</td><td>Confirm source is non-zero.</td></tr>
+        <tr><td>422 conversion</td><td>Format converter</td><td>Call direct converter in a focused test</td><td>Determine DOCX vs PDF ownership; preserve controlled API error.</td></tr>
+        <tr><td>Preview fails</td><td>Renderer/API</td><td>POST known Markdown to /api/render</td><td>Check renderer config and unsafe URI behavior.</td></tr>
+        <tr><td>Missing PDF link</td><td>Annotation geometry</td><td>Inspect page.hyperlinks and character rectangles</td><td>Fix rectangle matching, not text-only replacements.</td></tr>
+        <tr><td>Oversized PDF image</td><td>Image scaling</td><td>Compare source point size to output PNG pixels</td><td>Maintain 96/72 point-to-CSS conversion.</td></tr>
+        <tr><td>Repeated mastheads</td><td>Image dedup/furniture</td><td>Compare source image object IDs/hashes</td><td>Preserve document-wide deduplication.</td></tr>
+        <tr><td>Scanned PDF has no text</td><td>OCR provider</td><td>Check Tesseract detect and page classification</td><td>Visual fallback is expected when provider absent.</td></tr>
+        <tr><td>Batch has partial failures</td><td>Per-file conversion</td><td>Inspect manifest.json</td><td>Successful files should remain in ZIP.</td></tr>
+        <tr><td>uv TLS UnknownIssuer</td><td>Corporate certificate</td><td>Retry with UV_SYSTEM_CERTS</td><td>Set <code>$env:UV_SYSTEM_CERTS='true'</code>.</td></tr>
+        <tr><td>Container page missing</td><td>Wheel packaging</td><td>Inspect docs_to_markdown/static in wheel</td><td>Wheel currently includes five required assets.</td></tr>
+        <tr><td>OpenShift probe fails</td><td>Runtime/listener</td><td>GET /health on port 8080</td><td>Check Uvicorn command, Service targetPort, pod logs.</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="security">
+      <div class="section-head"><span class="section-num">18 · Security</span><div><h2>Security and data handling</h2><p class="lead">Current controls are appropriate for a local/internal pilot, not an exposed multi-user service.</p></div></div>
+      <h3>Implemented controls</h3><ul><li>Uploads are processed in memory and not persisted by application code.</li><li>Raw HTML is disabled in preview rendering.</li><li>Unsafe JavaScript links and SVG data URIs are rejected.</li><li>API returns generic conversion errors rather than exception detail.</li><li>Batch limits file count and aggregate bytes.</li><li>Container runs non-root with restricted OpenShift security context.</li><li>Build context excludes private review documents and local environments.</li></ul>
+      <h3>Open controls before hosted release</h3><div class="danger"><ul class="compact"><li>Authentication and authorization.</li><li>TLS/ingress policy and network exposure.</li><li>Retention, privacy classification, and deletion policy.</li><li>Malware/content scanning.</li><li>Single-file size limit, request timeout, concurrency controls, and rate limiting.</li><li>Privacy-safe structured logs, request IDs, audit events, and telemetry.</li><li>Dependency/image vulnerability scanning, SBOM, signing, and patch policy.</li><li>Abuse testing for malformed archives/documents, decompression bombs, and memory pressure.</li></ul></div>
+    </section>
+
+    <section id="recovery">
+      <div class="section-head"><span class="section-num">19 · Recovery</span><div><h2>Preservation, recovery, and source control</h2><p class="lead">The workspace is not a Git repository. Source checkpoint archives are the current recovery mechanism.</p></div></div>
+      <h3>Latest verified checkpoint</h3><pre>C:\Docs to MK 1.0\review\checkpoints\checkpoint-15-container-openshift-source.zip
+SHA-256: 2CD5F9D8C087FA7C3D34C873B6CBC837A1790C0E678E6BA0676B0D4AC9C6F14C
+Entries verified: 53</pre>
+      <h3>Previous checkpoint</h3><pre>C:\Docs to MK 1.0\review\checkpoints\checkpoint-14-batch-source.zip</pre>
+      <h3>Evidence reports</h3><ul><li><code>review\docx-corpus-baseline.json</code></li><li><code>review\pdf-corpus-before.json</code></li><li><code>review\pdf-corpus-comparison.json</code></li><li><code>review\pdf-word-com-comparison.json</code></li></ul>
+      <p>The paths above now live under <code>C:\MKDocsbackup\Docs-to-MK-safe-lean-20260817-203034\review\</code>. They were intentionally removed from the active lean workspace after byte-for-byte backup verification.</p>
+      <h3>Recovery procedure</h3><ol><li>Copy the checkpoint ZIP to a clean directory.</li><li>Verify SHA-256 before extraction.</li><li>Extract source, tests, deployment files, lockfile, and reports.</li><li>Restore project-local Python/uv or use approved Python 3.12 and uv.</li><li>Sync with the frozen lockfile.</li><li>Run all 36 tests.</li><li>Run DOCX/PDF corpus evaluators only when local pilot documents are available.</li></ol>
+      <div class="warning"><strong>Milestone 16 requirement:</strong> move to an approved GitHub repository and GitHub Actions pipeline before v1. Keep checkpoint ZIPs until clean-checkout build, remote backup, and rollback are proven.</div>
+    </section>
+
+    <section id="roadmap" class="page-break">
+      <div class="section-head"><span class="section-num">20 · Roadmap</span><div><h2>Remaining engineering milestones</h2><p class="lead">The core conversion engine is no longer the dominant risk. Remaining milestones focus on a GitHub-based tester workflow, OCR evidence, metadata, security, and release approval. External hosting and self-contained Windows distribution are out of scope.</p></div></div>
+      <div class="checkpoint future"><h3>16 · GitHub repository and automated validation</h3><p>Create an approved GitHub repository with an appropriate .gitignore, contributor setup instructions, clean-checkout sync, focused test workflow, full test workflow, wheel build, and protected default branch. Preserve private pilot documents outside the repository.</p></div>
+      <div class="checkpoint future"><h3>17 · GitHub-based tester workflow</h3><p>Provide a documented GitHub Codespaces or local-clone path for approved testers to run the existing FastAPI application, upload sample documents, download results, and report issues. Keep all execution within the repository workflow; do not launch an external service or create a Windows package.</p></div>
+      <div class="checkpoint future"><h3>18 · Real OCR provider evaluation</h3><p>Install/provide Tesseract or approved provider in isolation; test real scans; measure accuracy, confidence, duration, and false-positive OCR routing; obtain human comparison.</p></div>
+      <div class="checkpoint future"><h3>19 · Quality metadata and review workflow</h3><p>Expose route, duration, pages, warnings, OCR use, structure counts, and review reasons through structured API/batch metadata without changing Markdown.</p></div>
+      <div class="checkpoint future"><h3>20 · Security and operational hardening</h3><p>Define repository access, retention, malware scanning, limits, timeouts, concurrency, rate limiting, safe logs, ownership, threat model, and vulnerability response for the GitHub-based tester workflow.</p></div>
+      <div class="checkpoint future"><h3>21 · GitHub release readiness</h3><p>Verify clean checkout, GitHub Actions results, tester setup instructions, versioning, release notes, issue triage, rollback to a prior tag, and private-document exclusions. Do not publish an image, deploy to a registry, or launch a hosted service.</p></div>
+      <div class="checkpoint future"><h3>22 · Performance and final pilot</h3><p>Benchmark representative files and approved batch limits; measure latency, throughput, memory, archive size, and failure isolation; secure formal human fidelity and support sign-off.</p></div>
+    </section>
+
+    <section id="handoff">
+      <div class="section-head"><span class="section-num">21 · Handoff</span><div><h2>Incoming engineer checklist</h2><p class="lead">Use this sequence before modifying converter behavior.</p></div></div>
+      <ol class="runbook"><li>Read <code>AGENTS.md</code> and preserve the one-checkpoint execution model.</li><li>Verify latest checkpoint ZIP/hash and copy it outside the workspace if needed.</li><li>Sync test dependencies with Python 3.12 and uv; use system certs when corporate TLS requires it.</li><li>Run the full 36-test command before editing.</li><li>Review <code>converter.py</code>, <code>pdf_converter.py</code>, and their focused fidelity tests.</li><li>Review current corpus reports and visual audit artifacts for the behavior being changed.</li><li>Name one falsifiable local hypothesis and one cheap discriminating validation.</li><li>Make the smallest grounded edit; immediately run the narrowest relevant test.</li><li>For format changes, verify direct/API parity and batch output parity.</li><li>Run full tests and relevant corpus evaluator before checkpoint completion.</li><li>Never call automated metrics human review.</li><li>Preserve real pilots locally; do not upload/commit without explicit approval.</li><li>Create and verify a new recovery checkpoint when a milestone completes.</li></ol>
+      <h3>Definition of done for a conversion change</h3><ul><li>Authoritative format function owns the behavior.</li><li>Focused regression test covers the defect/feature.</li><li>Direct/API output remains exact.</li><li>Batch uses the same result.</li><li>Preview safely renders intended Markdown.</li><li>No unrelated format regresses.</li><li>Full tests pass.</li><li>Corpus metrics and visual review are updated when fidelity changes.</li><li>Limitations and review status are documented honestly.</li></ul>
+    </section>
+
+    <section id="appendix" class="page-break">
+      <div class="section-head"><span class="section-num">22 · Appendix</span><div><h2>Reference paths and artifacts</h2><p class="lead">Absolute paths reflect the current workstation and should become relative repository links after Milestone 21.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Artifact</th><th>Path</th></tr></thead><tbody><tr><td>Project rules</td><td><code>C:\Docs to MK 1.0\AGENTS.md</code></td></tr><tr><td>Package metadata</td><td><code>C:\Docs to MK 1.0\pyproject.toml</code></td></tr><tr><td>Dependency lock</td><td><code>C:\Docs to MK 1.0\uv.lock</code></td></tr><tr><td>Container guide</td><td><code>C:\Docs to MK 1.0\CONTAINER.md</code></td></tr><tr><td>Dockerfile</td><td><code>C:\Docs to MK 1.0\Dockerfile</code></td></tr><tr><td>OpenShift manifest</td><td><code>C:\Docs to MK 1.0\deploy\openshift.yaml</code></td></tr><tr><td>Verified cleanup backup</td><td><code>C:\MKDocsbackup\Docs-to-MK-safe-lean-20260817-203034</code></td></tr><tr><td>Archived evaluators/reports</td><td><code>C:\MKDocsbackup\Docs-to-MK-safe-lean-20260817-203034\review\</code></td></tr><tr><td>Engineering source HTML</td><td><code>C:\Docs to MK 1.0\docs\Docs to Markdown - Engineering Handoff.html</code></td></tr></tbody></table></div>
+      <h3>Current URLs</h3><ul><li>Single: <code>http://127.0.0.1:8000/</code></li><li>Batch: <code>http://127.0.0.1:8000/batch</code></li><li>Health: <code>http://127.0.0.1:8000/health</code></li><li>OpenAPI (FastAPI default): <code>http://127.0.0.1:8000/docs</code></li></ul>
+    </section>
+
+    <footer><span>Docs to Markdown · Engineering Handoff · Internal</span><span>Evidence current through Checkpoint 15 · August 17, 2026</span></footer>
+  </main>
+</div>
+</body>
+</html>
