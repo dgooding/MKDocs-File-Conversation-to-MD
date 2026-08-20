@@ -8,12 +8,6 @@ These ideas are intentionally deferred while the current library remains small a
 <a href="#development-history">Jump to the development history</a>
 </aside>
 
-<aside class="future-enhancements">
-<strong>Cool Ass MkDocs page</strong>
-<p>A future-facing design brief for a faster, more trustworthy, progressive IT documentation experience.</p>
-<a href="../cool-ass-mkdocs-page/">Open the design brief</a>
-</aside>
-
 ## Larger libraries
 
 - Add a library-only filter for narrowing documents by title without leaving the page.
