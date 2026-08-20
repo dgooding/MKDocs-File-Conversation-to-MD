@@ -15,6 +15,55 @@ main {
   gap: 16px;
 }
 
+.quick-start {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid #d8d8d8;
+  background: #f8f9fb;
+}
+
+.quick-start h2 {
+  margin: 0 0 8px;
+}
+
+.quick-start ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.quick-start li {
+  margin-bottom: 4px;
+}
+
+.hint {
+  margin: 8px 0;
+  color: #555;
+}
+
+#status {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+}
+
+.status-info {
+  color: #0b3f70;
+  border-color: #bfd6ec;
+  background: #edf5fc;
+}
+
+.status-success {
+  color: #0d4d1f;
+  border-color: #bfe7c8;
+  background: #edf9f0;
+}
+
+.status-error {
+  color: #7a1818;
+  border-color: #f1c4c4;
+  background: #fff2f2;
+}
+
 .file-list {
   padding-left: 24px;
 }

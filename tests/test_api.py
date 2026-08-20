@@ -17,6 +17,8 @@ def test_serves_upload_page() -> None:
     assert 'id="markdown"' in response.text
     assert 'id="preview"' in response.text
     assert 'id="download"' in response.text
+    assert 'id="selected-file"' in response.text
+    assert "How to use" in response.text
     assert "Download Markdown" in response.text
 
 
@@ -27,6 +29,7 @@ def test_serves_upload_page_script() -> None:
     assert 'fetch("/api/convert"' in response.text
     assert 'fetch("/api/render"' in response.text
     assert "text/markdown" in response.text
+    assert "function setStatus" in response.text
     assert "outputFilename = result.filename" in response.text
     assert "download.disabled = false" in response.text
 

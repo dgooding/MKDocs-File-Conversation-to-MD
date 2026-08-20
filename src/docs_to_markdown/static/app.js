@@ -1,5 +1,6 @@
 const form = document.querySelector("#conversion-form");
 const fileInput = document.querySelector("#document");
+const selectedFile = document.querySelector("#selected-file");
 const status = document.querySelector("#status");
 const markdown = document.querySelector("#markdown");
 const preview = document.querySelector("#preview");
@@ -7,6 +8,11 @@ const download = document.querySelector("#download");
 
 let outputFilename = "document.md";
 let previewTimer;
+
+function setStatus(message, tone) {
+  status.textContent = message;
+  status.className = `status-${tone}`;
+}
 
 async function renderPreview() {
   try {
@@ -29,13 +35,13 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const file = fileInput.files[0];
   if (!file) {
-    status.textContent = "Choose a DOCX file.";
+    setStatus("Choose a DOCX or PDF file.", "error");
     return;
   }
 
   const formData = new FormData();
   formData.append("file", file);
-  status.textContent = "Converting...";
+  setStatus("Converting...", "info");
   download.disabled = true;
 
   try {
@@ -49,15 +55,20 @@ form.addEventListener("submit", async (event) => {
     }
 
     markdown.value = result.markdown;
-  await renderPreview();
+    await renderPreview();
     outputFilename = result.filename;
-    status.textContent = "Conversion complete.";
+    setStatus("Conversion complete.", "success");
     download.disabled = false;
   } catch (error) {
     markdown.value = "";
     preview.replaceChildren();
-    status.textContent = error instanceof Error ? error.message : "Conversion failed.";
+    setStatus(error instanceof Error ? error.message : "Conversion failed.", "error");
   }
+});
+
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  selectedFile.textContent = file ? `Selected: ${file.name}` : "No file selected.";
 });
 
 markdown.addEventListener("input", () => {
