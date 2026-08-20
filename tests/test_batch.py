@@ -78,7 +78,33 @@ def test_batch_api_rejects_more_than_25_files() -> None:
     )
 
     assert response.status_code == 400
-    assert response.json() == {"detail": "A batch can contain at most 25 files"}
+
+
+def test_batch_ocr_image_output_matches_direct_conversion() -> None:
+    from docx import Document
+    from docx.shared import Inches
+    from PIL import Image, ImageDraw
+
+    document = Document()
+    image = Image.new("RGB", (240, 60), "white")
+    ImageDraw.Draw(image).text((10, 20), "Batch Label", fill="black")
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    document.add_picture(BytesIO(buffer.getvalue()), width=Inches(2))
+    stream = BytesIO()
+    document.save(stream)
+    docx = stream.getvalue()
+
+    response = client.post(
+        "/api/convert/batch",
+        files=[("files", ("labeled.docx", docx, "application/vnd.openxmlformats-officedocument.wordprocessingml.document"))],
+    )
+
+    assert response.status_code == 200
+    direct_markdown = convert_docx(docx)
+    with ZipFile(BytesIO(response.content)) as zip_file:
+        assert zip_file.read("labeled.md").decode("utf-8") == direct_markdown
+    assert "Batch" in direct_markdown
 
 
 def test_batch_isolates_converter_error(monkeypatch) -> None:

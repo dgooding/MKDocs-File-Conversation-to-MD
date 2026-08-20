@@ -105,6 +105,40 @@ def test_uploads_pdf_and_returns_exact_direct_markdown() -> None:
     assert response.json()["markdown"] == convert_pdf(pdf)
 
 
+def test_uploads_docx_with_ocr_image_and_matches_direct_markdown() -> None:
+    from io import BytesIO
+
+    from docx import Document
+    from docx.shared import Inches
+    from PIL import Image, ImageDraw
+
+    document = Document()
+    image = Image.new("RGB", (240, 60), "white")
+    ImageDraw.Draw(image).text((10, 20), "Parity Label", fill="black")
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    document.add_picture(BytesIO(buffer.getvalue()), width=Inches(2))
+    stream = BytesIO()
+    document.save(stream)
+    docx = stream.getvalue()
+
+    response = client.post(
+        "/api/convert",
+        files={
+            "file": (
+                "ocr-proof.docx",
+                docx,
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+        },
+    )
+
+    assert response.status_code == 200
+    direct_markdown = convert_docx(docx)
+    assert response.json()["markdown"] == direct_markdown
+    assert "Parity" in direct_markdown
+
+
 def test_rejects_non_docx_upload() -> None:
     response = client.post(
         "/api/convert",

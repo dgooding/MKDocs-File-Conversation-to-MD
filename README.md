@@ -39,23 +39,6 @@ Batch page:
 3. Start batch conversion.
 4. Download the ZIP file.
 
-## Run in GitHub Codespaces
-
-Use this when you do not want to install Python locally.
-
-1. Select **Code** in GitHub.
-2. Select **Create codespace on main**.
-3. Wait for setup to complete.
-4. Run:
-
-   ```sh
-   uv run uvicorn docs_to_markdown.api:app --app-dir src --host 0.0.0.0 --port 8000
-   ```
-
-5. Open forwarded port `8000`.
-
-Do not upload confidential documents to a public Codespace.
-
 ## Manual Local Run (Terminal)
 
 If you prefer commands instead of [LAUNCH.bat](LAUNCH.bat):
@@ -96,5 +79,5 @@ uv run pytest -q
 
 - DOCX conversion uses MarkItDown.
 - PDF conversion uses native extraction with a MarkItDown fallback.
-- Tesseract OCR is optional. Without it, DOCX and born-digital PDFs still work.
+- Tesseract OCR is optional; when absent, the app uses the bundled `rapidocr-onnxruntime` engine automatically. Without either, DOCX and born-digital PDFs still work.
 - This repository is for controlled tester evaluation. Do not commit real pilot documents, credentials, or generated conversion output.

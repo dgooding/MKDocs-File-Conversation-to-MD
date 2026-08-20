@@ -11,11 +11,12 @@ import pdfplumber
 import pypdfium2 as pdfium
 from PIL import Image
 
-from .ocr_adapter import OCRAdapter, TesseractOCR
+from .ocr_adapter import OCRAdapter, detect_ocr_adapter
 
 
 PDF_MIME_TYPE = "application/pdf"
 PDF_TO_CSS_PIXELS = 96 / 72
+MIN_OCR_IMAGE_DIMENSION = 40
 BULLET_PATTERN = re.compile(r"^(?:[•◦▪●○■□\uf0b7]|[+*-])\s+(.*)")
 ORDERED_PATTERN = re.compile(r"^(\d+)[.)]\s+(.*)")
 
@@ -189,6 +190,7 @@ def _page_items(
     body_size: float,
     repeated_furniture: set[str],
     seen_images: set[str],
+    ocr_adapter: OCRAdapter | None = None,
 ) -> list[dict[str, object]]:
     tables = []
     table_boxes = []
@@ -330,7 +332,15 @@ def _page_items(
             continue
         seen_images.add(image_hash)
         encoded = base64.b64encode(image_bytes).decode("ascii")
-        items.append({"top": float(image["top"]), "kind": "block", "content": f"![Image from page {page_number}](data:image/png;base64,{encoded})"})
+        alt = "Image"
+        if ocr_adapter and min(target_size) >= MIN_OCR_IMAGE_DIMENSION:
+            try:
+                image_text = ocr_adapter.extract_text(crop)
+            except Exception:
+                image_text = None
+            if image_text:
+                alt = " ".join(image_text.split())
+        items.append({"top": float(image["top"]), "kind": "block", "content": f"![{alt} from page {page_number}](data:image/png;base64,{encoded})"})
 
     items.extend(tables)
     return sorted(items, key=lambda item: float(item["top"]))
@@ -352,10 +362,19 @@ def _native_pdf_markdown(content: bytes, ocr_adapter: OCRAdapter | None = None) 
             sizes = [float(character.get("size", 0)) for line in lines for character in line.get("chars", []) if character.get("size")]
             body_size = median(sizes) if sizes else 12.0
             rendered = pdfium_document[page_index].render(scale=2)
-            items = _page_items(page, rendered, page_index + 1, body_size, repeated_furniture, seen_images)
+            needs_full_page_ocr = ocr_adapter is not None and _page_needs_ocr(page)
+            items = _page_items(
+                page,
+                rendered,
+                page_index + 1,
+                body_size,
+                repeated_furniture,
+                seen_images,
+                None if needs_full_page_ocr else ocr_adapter,
+            )
             if page_index:
                 chunks.append(f"<!-- page {page_index + 1} -->")
-            if ocr_adapter and _page_needs_ocr(page):
+            if needs_full_page_ocr:
                 try:
                     ocr_text = ocr_adapter.extract_text(rendered.to_pil().convert("RGB"))
                 except Exception:
@@ -375,7 +394,7 @@ def convert_pdf(content: bytes) -> str:
         raise ValueError("PDF content cannot be empty")
 
     try:
-        markdown = _native_pdf_markdown(content, TesseractOCR.detect())
+        markdown = _native_pdf_markdown(content, detect_ocr_adapter())
         if markdown.strip():
             return markdown
     except Exception:

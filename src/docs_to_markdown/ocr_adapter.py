@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 from dataclasses import dataclass
+from functools import lru_cache
 from io import BytesIO
 from pathlib import Path
 from typing import Protocol
@@ -63,3 +64,41 @@ class TesseractOCR:
             return None
         text = result.stdout.decode("utf-8", errors="replace").strip()
         return text or None
+
+
+@lru_cache(maxsize=1)
+def _rapidocr_engine():
+    from rapidocr_onnxruntime import RapidOCR
+
+    return RapidOCR()
+
+
+@dataclass(frozen=True)
+class RapidOCRAdapter:
+    """Pure-Python OCR fallback (ONNX Runtime); needs no external binary install."""
+
+    @classmethod
+    def detect(cls) -> "RapidOCRAdapter | None":
+        try:
+            _rapidocr_engine()
+        except Exception:
+            return None
+        return cls()
+
+    def extract_text(self, image: Image.Image) -> str | None:
+        import numpy as np
+
+        try:
+            result, _ = _rapidocr_engine()(np.array(image.convert("RGB")))
+        except Exception:
+            return None
+        if not result:
+            return None
+        lines = [str(entry[1]) for entry in result if entry and len(entry) > 1]
+        text = "\n".join(lines).strip()
+        return text or None
+
+
+def detect_ocr_adapter() -> OCRAdapter | None:
+    """Prefer Tesseract when configured/installed; otherwise fall back to the bundled pure-Python engine."""
+    return TesseractOCR.detect() or RapidOCRAdapter.detect()

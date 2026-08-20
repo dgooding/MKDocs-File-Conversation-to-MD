@@ -9,6 +9,7 @@ from docs_to_markdown.api import app
 from docs_to_markdown.ocr_adapter import TesseractOCR
 from docs_to_markdown.pdf_converter import _native_pdf_markdown, _page_needs_ocr
 from test_converter import make_pdf
+from test_pdf_fidelity import make_fidelity_pdf
 
 
 def make_scanned_pdf() -> bytes:
@@ -68,6 +69,15 @@ def test_missing_tesseract_is_nonfatal(monkeypatch) -> None:
 
     assert TesseractOCR.detect() is None
     assert "PDF Conversion Proof" in convert_pdf(make_pdf())
+
+
+def test_ocr_text_embedded_for_images_on_native_text_pages() -> None:
+    provider = FakeOCR()
+    markdown = _native_pdf_markdown(make_fidelity_pdf(), provider)
+
+    assert provider.calls == 1
+    assert "![Scanned Installation Guide" in markdown
+    assert "data:image/png;base64," in markdown
 
 
 def test_scanned_pdf_api_matches_direct_conversion() -> None:

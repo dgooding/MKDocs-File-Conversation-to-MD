@@ -1,3 +1,4 @@
+import base64
 from io import BytesIO
 import re
 from typing import Any, Optional
@@ -6,8 +7,12 @@ from urllib.parse import quote, unquote, urlparse, urlunparse
 from docx import Document
 import mammoth
 import markdownify
+from PIL import Image
 
 from .docx_math import preprocess_docx_equations
+from .ocr_adapter import OCRAdapter, detect_ocr_adapter
+
+MIN_OCR_IMAGE_DIMENSION = 40
 
 
 class _DocxMarkdownConverter(markdownify.MarkdownConverter):
@@ -143,10 +148,32 @@ def _prepare_docx(content: bytes) -> BytesIO:
     return stream
 
 
+def _docx_image_attributes(image, ocr_adapter: OCRAdapter | None) -> dict[str, str]:
+    with image.open() as image_bytes:
+        raw = image_bytes.read()
+    encoded = base64.b64encode(raw).decode("ascii")
+    attributes = {"src": f"data:{image.content_type};base64,{encoded}"}
+    if not ocr_adapter:
+        return attributes
+    try:
+        with Image.open(BytesIO(raw)) as pil_image:
+            if min(pil_image.size) < MIN_OCR_IMAGE_DIMENSION:
+                return attributes
+            ocr_text = ocr_adapter.extract_text(pil_image.convert("RGB"))
+    except Exception:
+        ocr_text = None
+    if ocr_text:
+        base_alt = image.alt_text or ""
+        attributes["alt"] = f"{base_alt} {ocr_text}".strip()
+    return attributes
+
+
 def convert_docx(content: bytes) -> str:
     if not content:
         raise ValueError("DOCX content cannot be empty")
 
     prepared = preprocess_docx_equations(_prepare_docx(content))
-    html = mammoth.convert_to_html(prepared).value
+    ocr_adapter = detect_ocr_adapter()
+    convert_image = mammoth.images.img_element(lambda image: _docx_image_attributes(image, ocr_adapter))
+    html = mammoth.convert_to_html(prepared, convert_image=convert_image).value
     return _DocxMarkdownConverter(keep_data_uris=True).convert(html).strip()

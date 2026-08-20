@@ -27,10 +27,16 @@
 
 - MarkItDown is the validated DOCX engine.
 - pdfplumber and pypdfium2 own native PDF extraction; MarkItDown is the PDF fallback.
-- Tesseract is an optional OCR adapter. Its absence must not break DOCX or born-digital PDF conversion.
+- OCR uses `detect_ocr_adapter()`: Tesseract first if configured/installed, otherwise the bundled `rapidocr-onnxruntime` pure-Python engine (no external binary, works out of the box). Its absence must not break DOCX or born-digital PDF conversion.
 - The removed evaluation, Marker, MkDocs, and checkpoint artifacts are preserved at `C:\MKDocsbackup\Docs-to-MK-safe-lean-20260817-203034`.
+
+## Network / Corporate Proxy
+
+- This workstation's network does TLS inspection with a corporate root CA. `uv` does not trust it by default and fails with `invalid peer certificate: UnknownIssuer`.
+- Add `--system-certs` to any `uv` command that hits the network (`uv lock`, `uv sync`, `uv pip install`) to use the Windows trusted certificate store instead.
+- Direct binary downloads from GitHub Releases (e.g., Tesseract installers) are blocked/corrupted by the proxy even with `--system-certs`; PyPI works. Prefer pip-installable, pure-Python alternatives over tools that require a separately downloaded native installer.
 
 ## Validation Commands
 
-- Sync: `.\.tools\uv\uv.exe sync --extra test --python .\.venv\Scripts\python.exe`
-- Focused tests: `.\.tools\uv\uv.exe run --python .\.venv\Scripts\python.exe pytest -q tests\test_converter.py tests\test_api.py tests\test_docx_fidelity.py tests\test_pdf_fidelity.py tests\test_pdf_scanned.py tests\test_batch.py tests\test_container.py`
+- Sync: `.\.tools\uv\uv.exe sync --extra test --system-certs --python .\.venv\Scripts\python.exe`
+- Focused tests: `.\.tools\uv\uv.exe run --python .\.venv\Scripts\python.exe pytest -q tests\test_converter.py tests\test_api.py tests\test_docx_fidelity.py tests\test_pdf_fidelity.py tests\test_pdf_scanned.py tests\test_batch.py`

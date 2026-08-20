@@ -7,8 +7,10 @@ from docx.opc.constants import RELATIONSHIP_TYPE
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
+from PIL import Image
 
 from docs_to_markdown import convert_docx
+from docs_to_markdown import converter as converter_module
 
 
 TINY_PNG = base64.b64decode(
@@ -208,3 +210,54 @@ def test_preserves_embedded_image_reference() -> None:
     assert "![](data:image/png;base64," in markdown
     assert "base64...)" not in markdown
     assert base64.b64encode(TINY_PNG).decode("ascii") in markdown
+
+
+def make_captioned_png() -> bytes:
+    image = Image.new("RGB", (60, 60), "white")
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def make_legible_png() -> bytes:
+    from PIL import ImageDraw
+
+    image = Image.new("RGB", (240, 60), "white")
+    ImageDraw.Draw(image).text((10, 20), "Diagram Label", fill="black")
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+class FakeDocxOCR:
+    def extract_text(self, image) -> str:
+        return "Recognized Diagram Caption"
+
+
+def test_embeds_ocr_text_in_image_alt_when_provider_available(monkeypatch) -> None:
+    monkeypatch.setattr(converter_module, "detect_ocr_adapter", lambda: FakeDocxOCR())
+    document = Document()
+    document.add_picture(BytesIO(make_captioned_png()), width=Inches(0.5))
+
+    markdown = convert_docx(save_document(document))
+
+    assert "![Recognized Diagram Caption]" in markdown
+
+
+def test_real_ocr_engine_makes_docx_images_searchable() -> None:
+    document = Document()
+    document.add_picture(BytesIO(make_legible_png()), width=Inches(2))
+
+    markdown = convert_docx(save_document(document))
+
+    assert "Diagram" in markdown
+
+
+def test_missing_ocr_provider_leaves_docx_images_unaffected(monkeypatch) -> None:
+    monkeypatch.setattr(converter_module, "detect_ocr_adapter", lambda: None)
+    document = Document()
+    document.add_picture(BytesIO(make_captioned_png()), width=Inches(0.5))
+
+    markdown = convert_docx(save_document(document))
+
+    assert "![](data:image/png;base64," in markdown
