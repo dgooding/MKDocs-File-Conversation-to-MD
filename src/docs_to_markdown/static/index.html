@@ -12,7 +12,7 @@
       <header class="page-header">
         <h1>Documents to Markdown</h1>
         <a href="/batch">Batch conversion</a>
-        <a id="search-site-link" href="http://127.0.0.1:8001/" target="_blank" rel="noopener">Open search site</a>
+        <a id="search-site-link" href="/mkdocs/" target="_blank" rel="noopener">Open MkDocs search</a>
       </header>
 
       <section class="quick-start" aria-label="How to use this page">
@@ -33,6 +33,19 @@
       </form>
 
       <p id="status" class="status-info" role="status" aria-live="polite">Ready.</p>
+      <section id="conversion-progress-panel" class="conversion-progress-panel" aria-live="polite" hidden>
+        <div class="progress-heading">
+          <strong id="progress-label">Conversion in progress</strong>
+          <span id="progress-time"></span>
+        </div>
+        <progress id="conversion-progress" max="100" aria-label="Conversion progress"></progress>
+        <p class="progress-hint">Approximate timing only; image-heavy PDFs may take longer.</p>
+      </section>
+
+      <div class="document-actions">
+        <button id="download" type="button" disabled>Download Markdown</button>
+        <button id="publish" type="button" disabled>Upload to MkDocs</button>
+      </div>
 
       <div class="workspace">
         <section>
@@ -44,8 +57,6 @@
           <div id="preview" class="preview" aria-live="polite"></div>
         </section>
       </div>
-      <button id="download" type="button" disabled>Download Markdown</button>
-      <button id="publish" type="button" disabled>Publish to search site</button>
     </main>
   </body>
 </html>

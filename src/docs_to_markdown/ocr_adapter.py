@@ -7,11 +7,18 @@ from io import BytesIO
 from pathlib import Path
 from typing import Protocol
 
-from PIL import Image
+from PIL import Image, ImageFilter, ImageOps
 
 
 class OCRAdapter(Protocol):
     def extract_text(self, image: Image.Image) -> str | None: ...
+
+
+def _prepare_ocr_image(image: Image.Image) -> Image.Image:
+    """Improve contrast and character scale for OCR without changing published images."""
+    prepared = ImageOps.autocontrast(ImageOps.grayscale(image))
+    prepared = prepared.resize((prepared.width * 2, prepared.height * 2), Image.Resampling.LANCZOS)
+    return prepared.filter(ImageFilter.SHARPEN).convert("RGB")
 
 
 @dataclass(frozen=True)
@@ -49,7 +56,7 @@ class TesseractOCR:
 
     def extract_text(self, image: Image.Image) -> str | None:
         buffer = BytesIO()
-        image.convert("RGB").save(buffer, format="PNG")
+        _prepare_ocr_image(image).save(buffer, format="PNG")
         try:
             result = subprocess.run(
                 [self.executable, "stdin", "stdout", "-l", "eng", "--psm", "6"],
@@ -89,7 +96,7 @@ class RapidOCRAdapter:
         import numpy as np
 
         try:
-            result, _ = _rapidocr_engine()(np.array(image.convert("RGB")))
+            result, _ = _rapidocr_engine()(np.array(_prepare_ocr_image(image)))
         except Exception:
             return None
         if not result:

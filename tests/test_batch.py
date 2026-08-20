@@ -35,18 +35,26 @@ def test_batch_reuses_authoritative_converters() -> None:
 
 def test_batch_page_is_separate_and_linked() -> None:
     single = client.get("/")
+    standalone_converter = client.get("/app/converter")
     batch = client.get("/batch")
     script = client.get("/static/batch.js")
 
     assert single.status_code == 200
     assert 'href="/batch"' in single.text
-    assert 'id="conversion-form"' in single.text
+    assert standalone_converter.status_code == 200
+    assert 'id="conversion-form"' in standalone_converter.text
     assert batch.status_code == 200
     assert 'href="/"' in batch.text
     assert 'id="batch-form"' in batch.text
+    assert 'id="batch-progress-panel"' in batch.text
+    assert 'id="batch-progress"' in batch.text
+    assert 'id="batch-download"' in batch.text
+    assert 'id="batch-publish"' in batch.text
     assert 'multiple' in batch.text
     assert script.status_code == 200
     assert 'fetch("/api/convert/batch"' in script.text
+    assert "startProgress" in script.text
+    assert 'fetch("/api/publish/batch"' in script.text
 
 
 def test_batch_api_returns_zip_with_exact_outputs() -> None:
@@ -69,6 +77,31 @@ def test_batch_api_returns_zip_with_exact_outputs() -> None:
         manifest = json.loads(zip_file.read("manifest.json"))
         assert manifest["succeeded"] == 2
         assert manifest["errors"] == 0
+
+
+def test_batch_publish_api_publishes_each_document(monkeypatch, tmp_path) -> None:
+    import docs_to_markdown.mkdocs_publish as mkdocs_publish
+
+    (tmp_path / "docs" / "markdown").mkdir(parents=True)
+    (tmp_path / "docs" / "backups").mkdir(parents=True)
+    monkeypatch.setattr(mkdocs_publish, "MKDOCS_SITE_ROOT", tmp_path)
+    response = client.post(
+        "/api/publish/batch",
+        files=[
+            ("files", ("one.pdf", make_pdf(), "application/pdf")),
+            ("files", ("two.docx", make_docx(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")),
+        ],
+    )
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 2
+    assert len({item["slug"] for item in response.json()["published"]}) == 2
+
+
+def test_batch_publish_rejects_unsupported_file() -> None:
+    response = client.post("/api/publish/batch", files=[("files", ("notes.txt", b"text", "text/plain"))])
+
+    assert response.status_code == 415
 
 
 def test_batch_api_rejects_more_than_25_files() -> None:

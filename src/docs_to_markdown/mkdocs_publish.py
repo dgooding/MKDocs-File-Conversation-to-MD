@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 MKDOCS_SITE_ROOT = Path(__file__).resolve().parents[2] / "mkdocs-site"
+MKDOCS_OUTPUT_ROOT = MKDOCS_SITE_ROOT / "site"
 
 _UNSAFE_CHARS = re.compile(r"[^A-Za-z0-9._-]+")
 _ALLOWED_EXTENSIONS = {".docx", ".pdf"}
@@ -26,8 +27,24 @@ def _append_index_link(index_path: Path, target_name: str, label: str) -> None:
     index_path.parent.mkdir(parents=True, exist_ok=True)
     if not index_path.exists():
         index_path.write_text("# Published\n\n", encoding="utf-8")
+    elif not index_path.read_text(encoding="utf-8").endswith("\n\n"):
+        with index_path.open("a", encoding="utf-8") as handle:
+            handle.write("\n" if index_path.read_bytes().endswith(b"\n") else "\n\n")
     with index_path.open("a", encoding="utf-8") as handle:
         handle.write(f"- [{label}]({target_name})\n")
+
+
+def build_mkdocs_site(*, site_root: Path | None = None) -> None:
+    """Build the searchable site when its optional MkDocs dependency is available."""
+    root = site_root or MKDOCS_SITE_ROOT
+    config_path = root / "mkdocs.yml"
+    if not config_path.is_file():
+        return
+
+    from mkdocs.commands.build import build
+    from mkdocs.config import load_config
+
+    build(load_config(config_file=str(config_path)))
 
 
 def publish_to_mkdocs(filename: str, content: bytes, markdown: str, *, site_root: Path | None = None) -> dict[str, str]:
@@ -48,7 +65,7 @@ def publish_to_mkdocs(filename: str, content: bytes, markdown: str, *, site_root
     backups_dir.mkdir(parents=True, exist_ok=True)
 
     stem = _safe_stem(filename)
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     slug = f"{stem}-{timestamp}"
 
     markdown_name = f"{slug}.md"

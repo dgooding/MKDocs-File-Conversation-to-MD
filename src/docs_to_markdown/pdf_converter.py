@@ -16,6 +16,7 @@ from .ocr_adapter import OCRAdapter, detect_ocr_adapter
 
 PDF_MIME_TYPE = "application/pdf"
 PDF_TO_CSS_PIXELS = 96 / 72
+PDF_IMAGE_RENDER_SCALE = 3
 MIN_OCR_IMAGE_DIMENSION = 40
 BULLET_PATTERN = re.compile(r"^(?:[•◦▪●○■□\uf0b7]|[+*-])\s+(.*)")
 ORDERED_PATTERN = re.compile(r"^(\d+)[.)]\s+(.*)")
@@ -319,12 +320,15 @@ def _page_items(
         if x1 <= x0 or y1 <= y0:
             continue
         crop = page_image.crop((x0, y0, x1, y1))
-        target_size = (
+        minimum_size = (
             max(1, round(float(image["width"]) * PDF_TO_CSS_PIXELS)),
             max(1, round(float(image["height"]) * PDF_TO_CSS_PIXELS)),
         )
-        if crop.size != target_size:
-            crop = crop.resize(target_size, Image.Resampling.LANCZOS)
+        if crop.width < minimum_size[0] or crop.height < minimum_size[1]:
+            crop = crop.resize(
+                (max(crop.width, minimum_size[0]), max(crop.height, minimum_size[1])),
+                Image.Resampling.LANCZOS,
+            )
         buffer = BytesIO()
         crop.save(buffer, format="PNG", optimize=True)
         image_bytes = buffer.getvalue()
@@ -334,7 +338,7 @@ def _page_items(
         seen_images.add(image_hash)
         encoded = base64.b64encode(image_bytes).decode("ascii")
         footnote_ref = ""
-        if ocr_adapter and min(target_size) >= MIN_OCR_IMAGE_DIMENSION:
+        if ocr_adapter and min(crop.size) >= MIN_OCR_IMAGE_DIMENSION:
             try:
                 image_text = ocr_adapter.extract_text(crop)
             except Exception:
@@ -365,7 +369,7 @@ def _native_pdf_markdown(content: bytes, ocr_adapter: OCRAdapter | None = None) 
             lines = page.extract_text_lines(return_chars=True, strip=True)
             sizes = [float(character.get("size", 0)) for line in lines for character in line.get("chars", []) if character.get("size")]
             body_size = median(sizes) if sizes else 12.0
-            rendered = pdfium_document[page_index].render(scale=2)
+            rendered = pdfium_document[page_index].render(scale=PDF_IMAGE_RENDER_SCALE)
             needs_full_page_ocr = ocr_adapter is not None and _page_needs_ocr(page)
             items = _page_items(
                 page,

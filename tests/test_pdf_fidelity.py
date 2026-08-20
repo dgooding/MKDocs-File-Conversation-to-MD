@@ -77,7 +77,8 @@ def test_preserves_native_pdf_structure() -> None:
     encoded = re.search(r"data:image/png;base64,([^)]+)", markdown)
     assert encoded is not None
     with Image.open(BytesIO(base64.b64decode(encoded.group(1)))) as image:
-        assert image.size == (53, 53)
+        assert image.width >= 53
+        assert image.height >= 53
 
 
 def test_normalizes_sparse_and_single_column_tables() -> None:

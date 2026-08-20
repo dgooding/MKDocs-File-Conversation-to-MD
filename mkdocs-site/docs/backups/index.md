@@ -1,6 +1,15 @@
-# Original Document Backups
+# Original files
 
-Published source files (DOCX/PDF) appear below as download links.
+Published source files appear below as download links.
 
 MkDocs cannot render or search inside binary files directly — this section exists so the
 original document stays alongside its converted, searchable Markdown counterpart.
+
+- [docs-to-markdown-browser-proof-20260820T190145Z](docs-to-markdown-browser-proof-20260820T190145Z.pdf)
+- [Guide_-_Active_Directory-20260820T192717Z](Guide_-_Active_Directory-20260820T192717Z.pdf)
+- [Guide_-_Basic_Troubleshooting-20260820T195208Z](Guide_-_Basic_Troubleshooting-20260820T195208Z.pdf)
+- [Guide_-_HCL_Notes-20260820T202422Z](Guide_-_HCL_Notes-20260820T202422Z.pdf)
+
+- [Guide_-_Basic_Troubleshooting-20260820T213135852963Z](Guide_-_Basic_Troubleshooting-20260820T213135852963Z.pdf)
+
+- [Guide_-_HCL_Notes-20260820T213152806476Z](Guide_-_HCL_Notes-20260820T213152806476Z.pdf)

@@ -5,23 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Batch Documents to Markdown</title>
     <link rel="stylesheet" href="/static/app.css">
-    <script src="/static/batch.js" defer></script>
+    <script src="/static/batch.js?v=actions2" defer></script>
   </head>
   <body>
     <main>
       <header class="page-header">
         <h1>Batch Documents to Markdown</h1>
-        <a href="/">Single conversion</a>
+        <a class="back-home-link" href="/">Back home</a>
       </header>
 
       <form id="batch-form">
         <label for="documents">DOCX or PDF files</label>
         <input id="documents" name="files" type="file" accept=".docx,.pdf" multiple required>
-        <button type="submit">Convert batch</button>
+        <button id="batch-convert" type="submit">Convert batch</button>
       </form>
 
       <p id="batch-summary">Choose up to 25 files. Successful conversions and a manifest will be downloaded as one ZIP file.</p>
       <p id="batch-status" role="status" aria-live="polite"></p>
+      <section id="batch-progress-panel" class="conversion-progress-panel" aria-live="polite" hidden>
+        <div class="progress-heading">
+          <strong id="batch-progress-label">Batch conversion in progress</strong>
+          <span id="batch-progress-time"></span>
+        </div>
+        <progress id="batch-progress" max="100" aria-label="Batch conversion progress"></progress>
+        <p class="progress-hint">Approximate timing only; image-heavy PDFs may take longer.</p>
+      </section>
+      <div class="document-actions batch-actions">
+        <button id="batch-download" type="button" disabled>Download ZIP</button>
+        <button id="batch-publish" type="button" disabled>Upload documents to MkDocs</button>
+      </div>
 
       <section aria-labelledby="selected-heading">
         <h2 id="selected-heading">Selected files</h2>

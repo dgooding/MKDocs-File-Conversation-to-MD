@@ -41,6 +41,6 @@
 - Sync: `.\.tools\uv\uv.exe sync --extra test --system-certs --python .\.venv\Scripts\python.exe`
 - Focused tests: `.\.tools\uv\uv.exe run --python .\.venv\Scripts\python.exe pytest -q tests\test_converter.py tests\test_api.py tests\test_docx_fidelity.py tests\test_pdf_fidelity.py tests\test_pdf_scanned.py tests\test_batch.py`
 
-## Future Milestones (not started)
+## Future Milestones
 
-- **Tester onboarding installer script**: a one-line PowerShell script that installs `uv` + Python if missing, then calls the existing `LAUNCH.bat`. Preferred over a PyInstaller `.exe` build — smaller footprint, no ONNX/OpenCV packaging risk, no code-signing requirement, and reuses the already-validated `uv sync`/`uvicorn` path. See `Docs-to-Markdown-EXE-Packaging-Analysis` (Desktop) for the full .exe cost/benefit analysis behind this decision.
+- **Tester onboarding installer script**: completed as `INSTALL_AND_LAUNCH.ps1`. It uses `winget` to install `uv` + Python 3.12 if missing, then calls the existing `LAUNCH.bat`. This remains preferred over a PyInstaller `.exe` build — smaller footprint, no ONNX/OpenCV packaging risk, no code-signing requirement, and it reuses the validated `uv sync`/`uvicorn` path.

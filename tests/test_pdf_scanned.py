@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw
 
 from docs_to_markdown import convert_pdf
 from docs_to_markdown.api import app
-from docs_to_markdown.ocr_adapter import TesseractOCR
+from docs_to_markdown.ocr_adapter import TesseractOCR, _prepare_ocr_image
 from docs_to_markdown.pdf_converter import _native_pdf_markdown, _page_needs_ocr
 from test_converter import make_pdf
 from test_pdf_fidelity import make_fidelity_pdf
@@ -49,6 +49,15 @@ def test_detects_image_only_page_and_preserves_visual() -> None:
 
     assert "data:image/" in markdown
     assert "Scanned Installation Guide" not in markdown
+
+
+def test_ocr_preparation_upscales_and_normalizes_image() -> None:
+    image = Image.new("RGB", (20, 10), "#888888")
+
+    prepared = _prepare_ocr_image(image)
+
+    assert prepared.mode == "RGB"
+    assert prepared.size == (40, 20)
 
 
 def test_uses_optional_ocr_only_for_scanned_pages() -> None:

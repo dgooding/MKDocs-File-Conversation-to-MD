@@ -8,8 +8,16 @@ from test_converter import make_docx, make_pdf
 client = TestClient(app)
 
 
-def test_serves_upload_page() -> None:
+def test_serves_mkdocs_home_page() -> None:
     response = client.get("/")
+
+    assert response.status_code == 200
+    assert "Document library" in response.text
+    assert "Converter" in response.text
+
+
+def test_serves_standalone_converter_page() -> None:
+    response = client.get("/app/converter")
 
     assert response.status_code == 200
     assert 'id="conversion-form"' in response.text
@@ -18,8 +26,37 @@ def test_serves_upload_page() -> None:
     assert 'id="preview"' in response.text
     assert 'id="download"' in response.text
     assert 'id="selected-file"' in response.text
+    assert 'id="conversion-progress-panel"' in response.text
+    assert 'id="conversion-progress"' in response.text
     assert "How to use" in response.text
     assert "Download Markdown" in response.text
+    assert 'href="/mkdocs/"' in response.text
+    assert "Upload to MkDocs" in response.text
+
+
+def test_serves_themed_converter_page() -> None:
+    with TestClient(app) as lifespan_client:
+        response = lifespan_client.get("/converter")
+
+    assert response.status_code == 200
+    assert "Convert a document" in response.text
+    assert "Drop a DOCX or PDF here" in response.text
+
+
+def test_serves_mkdocs_site_during_app_lifespan() -> None:
+    with TestClient(app) as lifespan_client:
+        response = lifespan_client.get("/mkdocs/")
+
+    assert response.status_code == 200
+    assert "Docs to Markdown" in response.text
+
+
+def test_serves_mkdocs_root_assets() -> None:
+    with TestClient(app) as lifespan_client:
+        response = lifespan_client.get("/css/theme.css")
+
+    assert response.status_code == 200
+    assert "wy-nav-side" in response.text
 
 
 def test_serves_upload_page_script() -> None:
@@ -32,6 +69,9 @@ def test_serves_upload_page_script() -> None:
     assert "function setStatus" in response.text
     assert "outputFilename = result.filename" in response.text
     assert "download.disabled = false" in response.text
+    assert "Approximate timing only" not in response.text
+    assert "estimateSeconds" in response.text
+    assert "/mkdocs/markdown/" in response.text
 
 
 def test_serves_responsive_preview_styles() -> None:

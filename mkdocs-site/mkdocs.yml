@@ -1,12 +1,19 @@
-site_name: Docs to Markdown - Search Test
+site_name: Docs to Markdown Library
 docs_dir: docs
 site_dir: site
 nav:
-  - Markdown: markdown/index.md
-  - Backups: backups/index.md
+  - Home: index.md
+  - Converter: converter.md
+  - Converted documents: markdown/index.md
+  - Original files: backups/index.md
 theme:
-  name: mkdocs
+  name: readthedocs
 plugins:
   - search
 markdown_extensions:
   - footnotes
+extra_css:
+  - stylesheets/extra.css
+extra_javascript:
+  - javascripts/back-button.js
+  - javascripts/converter.js

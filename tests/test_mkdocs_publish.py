@@ -38,6 +38,17 @@ def test_publish_appends_index_links(tmp_path: Path) -> None:
     assert second["backup_file"] in backups_index
 
 
+def test_publish_separates_appended_links_from_index_text(tmp_path: Path) -> None:
+    (tmp_path / "docs" / "markdown").mkdir(parents=True)
+    (tmp_path / "docs" / "backups").mkdir(parents=True)
+    (tmp_path / "docs" / "markdown" / "index.md").write_text("# Documents\n\nSummary.", encoding="utf-8")
+
+    result = publish_to_mkdocs("report.pdf", b"pdf", "# Report", site_root=tmp_path)
+
+    index = (tmp_path / "docs" / "markdown" / "index.md").read_text(encoding="utf-8")
+    assert f"Summary.\n\n- [{result['slug']}]" in index
+
+
 def test_publish_rejects_unsupported_extension(tmp_path: Path) -> None:
     (tmp_path / "docs" / "markdown").mkdir(parents=True)
     (tmp_path / "docs" / "backups").mkdir(parents=True)
