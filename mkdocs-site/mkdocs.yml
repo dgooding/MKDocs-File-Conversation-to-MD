@@ -1,0 +1,12 @@
+site_name: Docs to Markdown - Search Test
+docs_dir: docs
+site_dir: site
+nav:
+  - Markdown: markdown/index.md
+  - Backups: backups/index.md
+theme:
+  name: mkdocs
+plugins:
+  - search
+markdown_extensions:
+  - footnotes

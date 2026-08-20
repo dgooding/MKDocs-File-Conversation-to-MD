@@ -1,12 +1,13 @@
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .batch_converter import convert_batch
 from .converter import convert_docx
+from .mkdocs_publish import publish_to_mkdocs
 from .pdf_converter import convert_pdf
 from .renderer import render_markdown
 
@@ -60,6 +61,19 @@ async def convert(file: UploadFile = File(...)) -> dict[str, str]:
         raise HTTPException(status_code=422, detail="Document could not be converted") from error
 
     return {"filename": f"{Path(filename).stem}.md", "markdown": markdown}
+
+
+@app.post("/api/publish")
+async def publish(file: UploadFile = File(...), markdown: str = Form(...)) -> dict[str, str]:
+    # Test-only: publishes a conversion + its source file into the local mkdocs-site search sandbox.
+    content = await file.read()
+    try:
+        result = publish_to_mkdocs(file.filename or "document", content, markdown)
+    except FileNotFoundError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    return result
 
 
 @app.post("/api/convert/batch")

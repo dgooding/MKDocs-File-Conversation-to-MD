@@ -191,6 +191,7 @@ def _page_items(
     repeated_furniture: set[str],
     seen_images: set[str],
     ocr_adapter: OCRAdapter | None = None,
+    footnotes: list[str] | None = None,
 ) -> list[dict[str, object]]:
     tables = []
     table_boxes = []
@@ -332,15 +333,17 @@ def _page_items(
             continue
         seen_images.add(image_hash)
         encoded = base64.b64encode(image_bytes).decode("ascii")
-        alt = "Image"
+        footnote_ref = ""
         if ocr_adapter and min(target_size) >= MIN_OCR_IMAGE_DIMENSION:
             try:
                 image_text = ocr_adapter.extract_text(crop)
             except Exception:
                 image_text = None
-            if image_text:
-                alt = " ".join(image_text.split())
-        items.append({"top": float(image["top"]), "kind": "block", "content": f"![{alt} from page {page_number}](data:image/png;base64,{encoded})"})
+            if image_text and footnotes is not None:
+                footnote_number = len(footnotes) + 1
+                footnotes.append(f"[^ocr-{footnote_number}]: OCR text: {' '.join(image_text.split())}")
+                footnote_ref = f"[^ocr-{footnote_number}]"
+        items.append({"top": float(image["top"]), "kind": "block", "content": f"![Image from page {page_number}](data:image/png;base64,{encoded}){footnote_ref}"})
 
     items.extend(tables)
     return sorted(items, key=lambda item: float(item["top"]))
@@ -357,6 +360,7 @@ def _native_pdf_markdown(content: bytes, ocr_adapter: OCRAdapter | None = None) 
                     furniture_counts[_normalize_furniture(str(line.get("text", "")))] += 1
         repeated_furniture = {text for text, count in furniture_counts.items() if text and count >= 2}
         seen_images: set[str] = set()
+        footnotes: list[str] = []
         for page_index, page in enumerate(document.pages):
             lines = page.extract_text_lines(return_chars=True, strip=True)
             sizes = [float(character.get("size", 0)) for line in lines for character in line.get("chars", []) if character.get("size")]
@@ -371,6 +375,7 @@ def _native_pdf_markdown(content: bytes, ocr_adapter: OCRAdapter | None = None) 
                 repeated_furniture,
                 seen_images,
                 None if needs_full_page_ocr else ocr_adapter,
+                footnotes,
             )
             if page_index:
                 chunks.append(f"<!-- page {page_index + 1} -->")
@@ -386,6 +391,8 @@ def _native_pdf_markdown(content: bytes, ocr_adapter: OCRAdapter | None = None) 
                     chunks.append(f"{'    ' * int(item.get('indent', 0))}{item['marker']} {item['content']}")
                 else:
                     chunks.append(str(item["content"]))
+        if footnotes:
+            chunks.append("\n\n".join(footnotes))
     return "\n\n".join(chunk for chunk in chunks if chunk.strip()).strip()
 
 

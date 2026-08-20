@@ -76,7 +76,8 @@ def test_ocr_text_embedded_for_images_on_native_text_pages() -> None:
     markdown = _native_pdf_markdown(make_fidelity_pdf(), provider)
 
     assert provider.calls == 1
-    assert "![Scanned Installation Guide" in markdown
+    assert "[^ocr-1]" in markdown
+    assert "[^ocr-1]: OCR text: Scanned Installation Guide" in markdown
     assert "data:image/png;base64," in markdown
 
 

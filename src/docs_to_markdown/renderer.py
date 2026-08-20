@@ -1,4 +1,5 @@
 from markdown_it import MarkdownIt
+from mdit_py_plugins.footnote import footnote_plugin
 
 
 renderer = MarkdownIt(
@@ -8,7 +9,7 @@ renderer = MarkdownIt(
         "linkify": False,
         "typographer": False,
     },
-).enable("table")
+).enable("table").use(footnote_plugin)
 
 
 def render_markdown(content: str) -> str:

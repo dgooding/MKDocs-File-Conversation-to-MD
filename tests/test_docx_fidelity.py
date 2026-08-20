@@ -241,7 +241,9 @@ def test_embeds_ocr_text_in_image_alt_when_provider_available(monkeypatch) -> No
 
     markdown = convert_docx(save_document(document))
 
-    assert "![Recognized Diagram Caption]" in markdown
+    assert "![Image]" in markdown
+    assert "[^ocr-1]" in markdown
+    assert "[^ocr-1]: OCR text: Recognized Diagram Caption" in markdown
 
 
 def test_real_ocr_engine_makes_docx_images_searchable() -> None:

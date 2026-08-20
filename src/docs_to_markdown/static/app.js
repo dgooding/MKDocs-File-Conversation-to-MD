@@ -5,8 +5,10 @@ const status = document.querySelector("#status");
 const markdown = document.querySelector("#markdown");
 const preview = document.querySelector("#preview");
 const download = document.querySelector("#download");
+const publish = document.querySelector("#publish");
 
 let outputFilename = "document.md";
+let lastConvertedFile = null;
 let previewTimer;
 
 function setStatus(message, tone) {
@@ -43,6 +45,7 @@ form.addEventListener("submit", async (event) => {
   formData.append("file", file);
   setStatus("Converting...", "info");
   download.disabled = true;
+  publish.disabled = true;
 
   try {
     const response = await fetch("/api/convert", {
@@ -57,8 +60,10 @@ form.addEventListener("submit", async (event) => {
     markdown.value = result.markdown;
     await renderPreview();
     outputFilename = result.filename;
+    lastConvertedFile = file;
     setStatus("Conversion complete.", "success");
     download.disabled = false;
+    publish.disabled = false;
   } catch (error) {
     markdown.value = "";
     preview.replaceChildren();
@@ -84,4 +89,30 @@ download.addEventListener("click", () => {
   link.download = outputFilename;
   link.click();
   URL.revokeObjectURL(url);
+});
+
+publish.addEventListener("click", async () => {
+  if (!lastConvertedFile) {
+    setStatus("Convert a file before publishing.", "error");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", lastConvertedFile);
+  formData.append("markdown", markdown.value);
+  setStatus("Publishing to search site...", "info");
+
+  try {
+    const response = await fetch("/api/publish", {
+      method: "POST",
+      body: formData,
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.detail || "Publish failed.");
+    }
+    setStatus(`Published as "${result.slug}". Open the search site to test search.`, "success");
+  } catch (error) {
+    setStatus(error instanceof Error ? error.message : "Publish failed.", "error");
+  }
 });

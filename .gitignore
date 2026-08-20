@@ -22,6 +22,11 @@ output/
 artifacts/
 review/
 *.zip
+mkdocs-site/docs/markdown/*
+mkdocs-site/docs/backups/*
+!mkdocs-site/docs/markdown/index.md
+!mkdocs-site/docs/backups/index.md
+mkdocs-site/site/
 
 # Editor and operating-system files
 .vscode/

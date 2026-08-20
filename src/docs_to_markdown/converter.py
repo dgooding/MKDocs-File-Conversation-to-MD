@@ -148,7 +148,7 @@ def _prepare_docx(content: bytes) -> BytesIO:
     return stream
 
 
-def _docx_image_attributes(image, ocr_adapter: OCRAdapter | None) -> dict[str, str]:
+def _docx_image_attributes(image, ocr_adapter: OCRAdapter | None, footnote_entries: list[str]) -> dict[str, str]:
     with image.open() as image_bytes:
         raw = image_bytes.read()
     encoded = base64.b64encode(raw).decode("ascii")
@@ -163,9 +163,26 @@ def _docx_image_attributes(image, ocr_adapter: OCRAdapter | None) -> dict[str, s
     except Exception:
         ocr_text = None
     if ocr_text:
-        base_alt = image.alt_text or ""
-        attributes["alt"] = f"{base_alt} {ocr_text}".strip()
+        footnote_entries.append(ocr_text)
+        attributes["alt"] = f"\ue000ocr-footnote-{len(footnote_entries)}\ue000"
     return attributes
+
+
+_OCR_FOOTNOTE_MARKER = re.compile(r"!\[\ue000ocr-footnote-(\d+)\ue000\]\(([^)]*)\)")
+
+
+def _apply_ocr_footnotes(markdown: str, footnote_entries: list[str]) -> str:
+    if not footnote_entries:
+        return markdown
+
+    def _replace(match: re.Match[str]) -> str:
+        return f"![Image]({match.group(2)})[^ocr-{match.group(1)}]"
+
+    markdown = _OCR_FOOTNOTE_MARKER.sub(_replace, markdown)
+    footnotes = "\n\n".join(
+        f"[^ocr-{index}]: OCR text: {' '.join(text.split())}" for index, text in enumerate(footnote_entries, start=1)
+    )
+    return f"{markdown}\n\n{footnotes}"
 
 
 def convert_docx(content: bytes) -> str:
@@ -174,6 +191,8 @@ def convert_docx(content: bytes) -> str:
 
     prepared = preprocess_docx_equations(_prepare_docx(content))
     ocr_adapter = detect_ocr_adapter()
-    convert_image = mammoth.images.img_element(lambda image: _docx_image_attributes(image, ocr_adapter))
+    footnote_entries: list[str] = []
+    convert_image = mammoth.images.img_element(lambda image: _docx_image_attributes(image, ocr_adapter, footnote_entries))
     html = mammoth.convert_to_html(prepared, convert_image=convert_image).value
-    return _DocxMarkdownConverter(keep_data_uris=True).convert(html).strip()
+    markdown = _DocxMarkdownConverter(keep_data_uris=True).convert(html).strip()
+    return _apply_ocr_footnotes(markdown, footnote_entries)
