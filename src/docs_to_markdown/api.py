@@ -29,7 +29,7 @@ def _mount_library_assets() -> None:
         route_name = f"library-{asset_directory}"
         if directory.is_dir() and not any(route.name == route_name for route in app.routes):
             app.mount(f"/{asset_directory}", StaticFiles(directory=directory), name=route_name)
-    for content_directory in ("markdown", "backups", "converter", "future-enhancements"):
+    for content_directory in ("markdown", "backups", "converter", "future-enhancements", "cool-ass-mkdocs-page"):
         directory = MKDOCS_OUTPUT_ROOT / content_directory
         route_name = f"library-{content_directory}"
         if directory.is_dir() and not any(route.name == route_name for route in app.routes):
