@@ -160,6 +160,38 @@ body {
   font-weight: 700;
 }
 
+.development-history-callout {
+  margin: 1rem 0 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--library-line);
+  background: #f6f8f7;
+}
+
+.development-history-callout strong {
+  color: var(--library-ink);
+}
+
+.development-history-callout p {
+  display: inline;
+  margin: 0 0.5rem 0 0.35rem;
+  color: var(--library-muted);
+}
+
+.development-history-callout a {
+  white-space: nowrap;
+}
+
+.history-link {
+  margin-top: 1rem;
+  color: var(--library-muted);
+  font-size: 0.9rem;
+}
+
+.history-link a {
+  color: var(--library-teal);
+  font-weight: 700;
+}
+
 @media screen and (max-width: 768px) {
   .wy-nav-content {
     padding: 1.25rem;

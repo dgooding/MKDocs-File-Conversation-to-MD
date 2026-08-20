@@ -2,6 +2,12 @@
 
 These ideas are intentionally deferred while the current library remains small and easy to use.
 
+<aside class="development-history-callout">
+<strong>Development history</strong>
+<p>See the chronological record of how the converter and library evolved.</p>
+<a href="#development-history">Jump to the development history</a>
+</aside>
+
 ## Larger libraries
 
 - Add a library-only filter for narrowing documents by title without leaving the page.
@@ -128,3 +134,183 @@ path.
 
 See the [Azure Document Intelligence overview](https://learn.microsoft.com/azure/ai-services/document-intelligence/overview)
 for the service background and supported analysis capabilities.
+
+## Development history
+
+This is the engineering handoff for the current implementation. It records the chronological
+milestones, the controlling modules, the contracts that must not drift, and the evidence available
+for the next engineer.
+
+### Handoff status
+
+| Area | Status | Owner / source of truth |
+| --- | --- | --- |
+| DOCX conversion | Implemented | `src/docs_to_markdown/converter.py` |
+| PDF conversion | Implemented | `src/docs_to_markdown/pdf_converter.py` |
+| OCR provider selection | Implemented, optional | `src/docs_to_markdown/ocr_adapter.py` |
+| Browser conversion UI | Implemented | `src/docs_to_markdown/static/` and `mkdocs-site/docs/converter.md` |
+| MkDocs publishing bridge | Implemented, local/test-oriented | `src/docs_to_markdown/mkdocs_publish.py` |
+| Published document management | Implemented | `src/docs_to_markdown/api.py` and `mkdocs-site/docs/javascripts/manage-documents.js` |
+| Large-library optimization | Deferred | This page, Larger libraries and Performance |
+| Azure Document Intelligence | Deferred optional provider | This page, Optional Azure Document Intelligence reader |
+
+### System topology
+
+```text
+Browser
+	|
+	v
+FastAPI application (src/docs_to_markdown/api.py)
+	|-- /api/convert ----------> DOCX/PDF converter -> Markdown
+	|-- /api/render ----------- > Markdown renderer -> HTML preview
+	|-- /api/publish ---------- > publish_to_mkdocs -> docs/markdown + docs/backups
+	|-- /api/published/delete -> delete_published_documents -> rebuild
+	|
+	`-- /, /converter, /markdown, /future-enhancements
+			 Static MkDocs output mounted from mkdocs-site/site
+
+MkDocs build
+	|-- docs/markdown/*.md ---- searchable converted documents
+	|-- docs/backups/* -------- original DOCX/PDF files
+	`-- search/search_index.json
+```
+
+The application is intentionally local and file-backed at this stage. Publishing is the explicit
+exception to the otherwise stateless conversion path: it writes converted Markdown and original
+files into the local `mkdocs-site` sandbox, then rebuilds the generated site.
+
+### Chronological change record
+
+#### Milestone 1: converter prototype and initial release
+
+The first release combined a browser upload experience, DOCX/PDF-to-Markdown conversion, and a
+themed MkDocs site. The baseline workflow was upload, convert, preview, and download.
+
+**Established contracts:** DOCX and PDF are the supported input types; Markdown is the primary
+output; the browser preview must represent the same conversion result that is downloadable.
+
+#### Milestone 2: FastAPI application foundation
+
+The converter was separated into an application entry point and format-specific modules. The
+FastAPI layer became the HTTP boundary while converter modules remained the behavior-owning layer.
+
+**Important boundary:** API routes validate inputs and translate failures into HTTP responses;
+they should not grow a second conversion implementation. Direct conversion, API conversion, and
+batch conversion should continue to call the same converter functions.
+
+#### Milestone 3: tester onboarding and preview UX
+
+The launcher, README, converter page, status messaging, and Markdown/preview workspace were
+refined for Windows testers. The supported local path is `LAUNCH.bat` or the documented `uv`
+command, with the themed converter and document library sharing port 8000.
+
+#### Milestone 4: OCR adapter and image routing
+
+OCR became an adapter contract with `extract_text(image) -> str | None`. Provider detection prefers
+Tesseract and falls back to bundled RapidOCR. Both providers share preprocessing in
+`ocr_adapter.py`: grayscale, autocontrast, 2x upscale, and sharpening.
+
+Image OCR is deliberately selective. Images whose shortest dimension is below 40 pixels are
+skipped to avoid indexing icons and logos. OCR failures return no text and must not break DOCX or
+born-digital PDF conversion.
+
+#### Milestone 5: searchable OCR footnotes
+
+The initial OCR implementation placed text in image `alt` metadata. MkDocs search did not index
+that metadata, so the implementation changed to visible Markdown footnotes:
+
+```text
+![Image](image-source)[^ocr-1]
+
+[^ocr-1]: OCR text: Text detected inside the image.
+```
+
+In DOCX conversion, `converter.py` records OCR entries while Mammoth creates HTML, uses a private
+marker to preserve image identity, then `_apply_ocr_footnotes()` converts markers into image-plus-
+footnote references. In PDF conversion, `_ocr_markdown()` attaches the footnote reference to the
+image block and appends the footnote definitions after page content.
+
+The image remains embedded in the Markdown output. Therefore the image, its footnote reference,
+and searchable OCR text remain in the same conversion artifact and survive batch ZIP packaging.
+The Markdown renderer enables `mdit_py_plugins.footnote`, and MkDocs enables its `footnotes`
+extension, keeping preview and published rendering aligned.
+
+#### Milestone 6: lean project and offline constraints
+
+Unneeded container/deployment artifacts were removed from the focused project path. Tester setup
+was documented in `README.md`, `INSTALL_AND_LAUNCH.ps1`, and `LAUNCH.bat`.
+
+The workstation's corporate proxy blocked the Tesseract binary download. That constraint drove the
+RapidOCR fallback decision: it is pip-installable, bundles its model runtime, and preserves
+offline/local operation. Do not make Tesseract or Azure a hard dependency for ordinary conversion.
+
+#### Milestone 7: MkDocs publishing and paired source files
+
+`publish_to_mkdocs()` creates a timestamped safe slug, writes the Markdown conversion under
+`docs/markdown`, writes the original `.docx` or `.pdf` under `docs/backups`, and appends index
+links. The API rebuilds MkDocs after publish and batch publish.
+
+`delete_published_documents()` accepts a published Markdown filename or matching original backup
+filename, validates that it is a flat allowed filename, removes both artifacts, removes their index
+links, and triggers a rebuild through the API route.
+
+**Safety invariants:** only `.md`, `.docx`, and `.pdf` published filenames are accepted; `index`
+cannot be deleted; path traversal is rejected; duplicate filenames are de-duplicated per request.
+
+#### Milestone 8: library UX and navigation validation
+
+The Documents page evolved from a raw list into document rows with title, searchable-Markdown
+metadata, Markdown/original-file actions, selection count, Select all/Clear all, and bulk deletion.
+The management behavior is client-side over the generated MkDocs list and calls
+`POST /api/published/delete` for mutation.
+
+Navigation was tested through the browser. Root-level mounts were added for generated content so
+Home, Converter, Documents, and Future enhancements work from both `/` and `/mkdocs/`. The batch
+route remains available from workflow links but is intentionally absent from the primary sidebar.
+
+### Current runtime contracts
+
+**Conversion:** `POST /api/convert` accepts one DOCX/PDF upload and returns `filename` plus
+`markdown`. Empty files are rejected; unsupported extensions return 415; conversion failures
+return 422.
+
+**Preview:** `POST /api/render` accepts `{ "markdown": "..." }` and returns rendered HTML. The
+footnote plugin is part of the renderer contract.
+
+**Publish:** `POST /api/publish` accepts the original file and Markdown form field, persists paired
+artifacts, rebuilds MkDocs, and returns the generated slug and filenames.
+
+**Delete:** `POST /api/published/delete` accepts `{ "filenames": ["..."] }`. Empty selections
+return 400. Successful deletion returns `{ "removed": n }`.
+
+**Batch:** the standalone `/batch` page supports up to 25 files and 100 MB total input. It returns
+a ZIP containing converted Markdown and a manifest; batch publishing uses the same converter and
+publishing primitives.
+
+### Validation evidence
+
+- Focused regression suite: `27 passed` for `tests/test_mkdocs_publish.py` and `tests/test_api.py`.
+- MkDocs build: `python -m mkdocs build -f mkdocs-site/mkdocs.yml --clean` succeeds.
+- Browser checks: Home, Converter, Documents, Future enhancements, in-page anchors, publishing
+	management controls, and the Azure reference were exercised.
+- OCR search proof: OCR text was verified in the generated MkDocs `search/search_index.json`.
+- Latest pushed checkpoint: `e5d9ae4`, **Improve library navigation and OCR documentation**.
+
+### Known risks and deferred work
+
+- MkDocs rebuilds synchronously after publishing and deletion; latency should be measured before
+	scaling beyond the current small library.
+- The library renders all document rows at once and has no title filter, pagination, or sorting.
+- Embedded image data URIs make large packages heavier; managed assets are a future change.
+- OCR quality remains source-dependent and requires human fidelity review for high-stakes claims.
+- Azure Document Intelligence is not implemented; any future provider must remain optional, explicit,
+	identity-protected, timeout-bounded, and cost-documented.
+
+### Resume checklist
+
+1. Read `AGENTS.md` before editing; complete one approved checkpoint at a time.
+2. Preserve one authoritative converter per format and direct/API/batch parity.
+3. Run the focused tests before widening validation.
+4. Rebuild MkDocs after documentation or generated-site changes.
+5. Treat OCR searchability and visual fidelity as separate acceptance criteria.
+6. Do not commit pilot documents, credentials, or generated conversion output.
