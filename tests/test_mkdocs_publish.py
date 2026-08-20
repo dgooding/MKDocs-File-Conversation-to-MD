@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from docs_to_markdown.api import app
-from docs_to_markdown.mkdocs_publish import _safe_stem, publish_to_mkdocs
+from docs_to_markdown.mkdocs_publish import _safe_stem, delete_published_documents, publish_to_mkdocs
 
 
 client = TestClient(app)
@@ -47,6 +47,38 @@ def test_publish_separates_appended_links_from_index_text(tmp_path: Path) -> Non
 
     index = (tmp_path / "docs" / "markdown" / "index.md").read_text(encoding="utf-8")
     assert f"Summary.\n\n- [{result['slug']}]" in index
+
+
+def test_delete_published_documents_removes_markdown_backup_and_links(tmp_path: Path) -> None:
+    (tmp_path / "docs" / "markdown").mkdir(parents=True)
+    (tmp_path / "docs" / "backups").mkdir(parents=True)
+    result = publish_to_mkdocs("report.pdf", b"pdf", "# Report", site_root=tmp_path)
+
+    assert delete_published_documents([result["markdown_file"]], site_root=tmp_path) == 1
+    assert not (tmp_path / "docs" / "markdown" / result["markdown_file"]).exists()
+    assert not (tmp_path / "docs" / "backups" / result["backup_file"]).exists()
+    assert result["markdown_file"] not in (tmp_path / "docs" / "markdown" / "index.md").read_text(encoding="utf-8")
+
+
+def test_delete_rejects_path_escape(tmp_path: Path) -> None:
+    (tmp_path / "docs" / "markdown").mkdir(parents=True)
+    (tmp_path / "docs" / "backups").mkdir(parents=True)
+
+    try:
+        delete_published_documents(["../outside.md"], site_root=tmp_path)
+    except ValueError as error:
+        assert "published document" in str(error)
+    else:
+        raise AssertionError("Expected path escape to be rejected")
+
+
+def test_delete_accepts_original_backup_filename(tmp_path: Path) -> None:
+    (tmp_path / "docs" / "markdown").mkdir(parents=True)
+    (tmp_path / "docs" / "backups").mkdir(parents=True)
+    result = publish_to_mkdocs("report.pdf", b"pdf", "# Report", site_root=tmp_path)
+
+    assert delete_published_documents([result["backup_file"]], site_root=tmp_path) == 1
+    assert not (tmp_path / "docs" / "markdown" / result["markdown_file"]).exists()
 
 
 def test_publish_rejects_unsupported_extension(tmp_path: Path) -> None:

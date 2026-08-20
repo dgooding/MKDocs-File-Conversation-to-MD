@@ -4,8 +4,8 @@ site_dir: site
 nav:
   - Home: index.md
   - Converter: converter.md
-  - Converted documents: markdown/index.md
-  - Original files: backups/index.md
+  - Documents: markdown/index.md
+  - Future enhancements: future-enhancements.md
 theme:
   name: readthedocs
 plugins:
@@ -17,3 +17,4 @@ extra_css:
 extra_javascript:
   - javascripts/back-button.js
   - javascripts/converter.js
+  - javascripts/manage-documents.js

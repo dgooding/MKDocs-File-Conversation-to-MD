@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from .batch_converter import CONVERTERS, convert_batch
 from .converter import convert_docx
-from .mkdocs_publish import MKDOCS_OUTPUT_ROOT, build_mkdocs_site, publish_to_mkdocs
+from .mkdocs_publish import MKDOCS_OUTPUT_ROOT, build_mkdocs_site, delete_published_documents, publish_to_mkdocs
 from .pdf_converter import convert_pdf
 from .renderer import render_markdown
 
@@ -29,7 +29,7 @@ def _mount_library_assets() -> None:
         route_name = f"library-{asset_directory}"
         if directory.is_dir() and not any(route.name == route_name for route in app.routes):
             app.mount(f"/{asset_directory}", StaticFiles(directory=directory), name=route_name)
-    for content_directory in ("markdown", "backups", "converter"):
+    for content_directory in ("markdown", "backups", "converter", "future-enhancements"):
         directory = MKDOCS_OUTPUT_ROOT / content_directory
         route_name = f"library-{content_directory}"
         if directory.is_dir() and not any(route.name == route_name for route in app.routes):
@@ -79,6 +79,10 @@ async def batch_page() -> FileResponse:
 
 class PreviewRequest(BaseModel):
     markdown: str
+
+
+class DeletePublishedRequest(BaseModel):
+    filenames: list[str]
 
 
 @app.post("/api/render")
@@ -175,6 +179,20 @@ async def publish_batch(files: list[UploadFile] = File(...)) -> dict[str, object
     except ModuleNotFoundError as error:
         raise HTTPException(status_code=503, detail="MkDocs is not installed; install the site extra") from error
     return {"published": published, "count": len(published)}
+
+
+@app.post("/api/published/delete")
+async def delete_published(request: DeletePublishedRequest) -> dict[str, int]:
+    if not request.filenames:
+        raise HTTPException(status_code=400, detail="Select at least one document")
+    try:
+        removed = delete_published_documents(request.filenames)
+        build_mkdocs_site()
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    except ModuleNotFoundError as error:
+        raise HTTPException(status_code=503, detail="MkDocs is not installed; install the site extra") from error
+    return {"removed": removed}
 
 
 # Keep API and standalone page routes above the library mounts; MkDocs uses root-relative assets.

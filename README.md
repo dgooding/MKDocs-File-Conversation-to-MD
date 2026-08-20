@@ -56,8 +56,9 @@ MkDocs document library:
 5. Select **Upload to library** to publish the Markdown and original file.
 6. Use the sidebar search to find the converted document or OCR text.
 
-The original file is kept in the library's **Original files** section. PDF files open in
-the browser PDF viewer; DOCX files download because browsers do not render DOCX directly.
+Each document is shown with its converted Markdown and matching original file. PDF files
+open in the browser PDF viewer; DOCX files download because browsers do not render DOCX
+directly. The separate `/mkdocs/backups/` route remains available for source-file browsing.
 
 ## Manual Local Run (Terminal)
 

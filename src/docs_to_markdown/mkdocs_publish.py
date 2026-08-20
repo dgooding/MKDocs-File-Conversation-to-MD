@@ -77,3 +77,44 @@ def publish_to_mkdocs(filename: str, content: bytes, markdown: str, *, site_root
     _append_index_link(backups_dir / "index.md", backup_name, slug)
 
     return {"slug": slug, "markdown_file": markdown_name, "backup_file": backup_name}
+
+
+def delete_published_documents(filenames: list[str], *, site_root: Path | None = None) -> int:
+    """Delete selected library Markdown files and their matching original backups."""
+    root = site_root or MKDOCS_SITE_ROOT
+    markdown_dir = (root / "docs" / "markdown").resolve()
+    backups_dir = (root / "docs" / "backups").resolve()
+    removed = 0
+    markdown_index = markdown_dir / "index.md"
+    backups_index = backups_dir / "index.md"
+
+    for filename in dict.fromkeys(filenames):
+        source_path = Path(filename)
+        if source_path.name != filename or source_path.suffix.lower() not in ({".md"} | _ALLOWED_EXTENSIONS) or source_path.stem == "index":
+            raise ValueError("Only published document filenames can be deleted")
+        slug = source_path.stem
+        markdown_path = (markdown_dir / f"{slug}.md").resolve()
+        if markdown_path.parent != markdown_dir:
+            raise ValueError("Only published document filenames can be deleted")
+        backup_candidates = [backup for backup in backups_dir.glob(f"{slug}.*") if backup.suffix.lower() in _ALLOWED_EXTENSIONS]
+        if not markdown_path.is_file() and not backup_candidates:
+            continue
+        if markdown_path.is_file():
+            markdown_path.unlink()
+        for backup in backups_dir.glob(f"{slug}.*"):
+            if backup.suffix.lower() in _ALLOWED_EXTENSIONS and backup.is_file():
+                backup.unlink()
+        _remove_index_link(markdown_index, f"{slug}.md")
+        for extension in _ALLOWED_EXTENSIONS:
+            _remove_index_link(backups_index, f"{slug}{extension}")
+        removed += 1
+
+    return removed
+
+
+def _remove_index_link(index_path: Path, target_name: str) -> None:
+    if not index_path.is_file():
+        return
+    lines = index_path.read_text(encoding="utf-8").splitlines()
+    filtered = [line for line in lines if not re.search(rf"\]\({re.escape(target_name)}\)\s*$", line)]
+    index_path.write_text("\n".join(filtered).rstrip() + "\n", encoding="utf-8")
