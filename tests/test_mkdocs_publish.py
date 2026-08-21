@@ -49,6 +49,29 @@ def test_publish_separates_appended_links_from_index_text(tmp_path: Path) -> Non
     assert f"Summary.\n\n- [{result['slug']}]" in index
 
 
+def test_publish_inserts_into_existing_list_before_trailing_page_content(tmp_path: Path) -> None:
+    (tmp_path / "docs" / "markdown").mkdir(parents=True)
+    (tmp_path / "docs" / "backups").mkdir(parents=True)
+    index_path = tmp_path / "docs" / "markdown" / "index.md"
+    index_path.write_text(
+        "# Documents\n\n"
+        "- [existing-doc](existing-doc.md)\n\n"
+        "<aside class=\"future-enhancements\">\n"
+        "<a href=\"../future-enhancements/\">View the enhancement notes</a>\n"
+        "</aside>\n",
+        encoding="utf-8",
+    )
+
+    result = publish_to_mkdocs("second.pdf", b"two", "# Second", site_root=tmp_path)
+
+    lines = index_path.read_text(encoding="utf-8").splitlines()
+    list_lines = [line for line in lines if line.startswith("- [")]
+    assert list_lines == [f"- [existing-doc](existing-doc.md)", f"- [{result['slug']}]({result['markdown_file']})"]
+    aside_index = lines.index("<aside class=\"future-enhancements\">")
+    assert lines.index(f"- [{result['slug']}]({result['markdown_file']})") < aside_index
+
+
+
 def test_delete_published_documents_removes_markdown_backup_and_links(tmp_path: Path) -> None:
     (tmp_path / "docs" / "markdown").mkdir(parents=True)
     (tmp_path / "docs" / "backups").mkdir(parents=True)

@@ -1,5 +1,5 @@
 (function () {
-  const documentPath = window.location.pathname.match(/\/mkdocs\/markdown\/[^/]+\/$/);
+  const documentPath = window.location.pathname.match(/\/(mkdocs\/)?markdown\/[^/]+\/$/);
   const documentBody = document.querySelector('[role="main"].document, [role="main"] .document');
 
   if (!documentPath || !documentBody || window.history.length <= 1) {

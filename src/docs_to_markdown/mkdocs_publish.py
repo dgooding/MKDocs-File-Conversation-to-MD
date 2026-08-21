@@ -23,15 +23,37 @@ def _safe_stem(filename: str) -> str:
     return cleaned[:80]
 
 
+_INDEX_LINK_LINE = re.compile(r"^- \[.*\]\(.*\)\s*$")
+
+
 def _append_index_link(index_path: Path, target_name: str, label: str) -> None:
     index_path.parent.mkdir(parents=True, exist_ok=True)
-    if not index_path.exists():
-        index_path.write_text("# Published\n\n", encoding="utf-8")
-    elif not index_path.read_text(encoding="utf-8").endswith("\n\n"):
-        with index_path.open("a", encoding="utf-8") as handle:
-            handle.write("\n" if index_path.read_bytes().endswith(b"\n") else "\n\n")
-    with index_path.open("a", encoding="utf-8") as handle:
-        handle.write(f"- [{label}]({target_name})\n")
+    new_line = f"- [{label}]({target_name})"
+
+    if not index_path.is_file():
+        index_path.write_text(f"# Published\n\n{new_line}\n", encoding="utf-8")
+        return
+
+    lines = index_path.read_text(encoding="utf-8").splitlines()
+    insert_at = None
+    in_block = False
+    for position, line in enumerate(lines):
+        if _INDEX_LINK_LINE.match(line):
+            in_block = True
+            insert_at = position + 1
+        elif in_block:
+            break
+
+    if insert_at is not None:
+        # Keep new entries inside the first document list; later page content (asides, links) must not split it.
+        lines.insert(insert_at, new_line)
+        index_path.write_text("\n".join(lines).rstrip("\n") + "\n", encoding="utf-8")
+        return
+
+    text = index_path.read_text(encoding="utf-8")
+    if not text.endswith("\n\n"):
+        text += "\n" if text.endswith("\n") else "\n\n"
+    index_path.write_text(f"{text}{new_line}\n", encoding="utf-8")
 
 
 def build_mkdocs_site(*, site_root: Path | None = None) -> None:
