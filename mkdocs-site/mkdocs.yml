@@ -17,5 +17,5 @@ extra_css:
 extra_javascript:
   - javascripts/sidebar-resync.js
   - javascripts/back-button.js
-  - javascripts/converter.js
+  - javascripts/converter.js?v=8ad0b73
   - javascripts/manage-documents.js
