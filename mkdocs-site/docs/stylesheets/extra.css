@@ -323,6 +323,11 @@ body {
   margin: 1rem 0;
 }
 
+.converter-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .converter-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

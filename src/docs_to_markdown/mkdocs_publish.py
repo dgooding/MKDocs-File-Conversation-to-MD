@@ -6,7 +6,10 @@ retract this feature: delete this module, the `/api/publish` route in api.py, th
 "Publish to search site" UI in static/index.html + app.js, and the mkdocs-site/ folder.
 """
 
+import base64
+import mimetypes
 import re
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -15,12 +18,47 @@ MKDOCS_OUTPUT_ROOT = MKDOCS_SITE_ROOT / "site"
 
 _UNSAFE_CHARS = re.compile(r"[^A-Za-z0-9._-]+")
 _ALLOWED_EXTENSIONS = {".docx", ".pdf"}
+_DATA_URI_IMAGE = re.compile(
+    r"!\[([^\]]*)\]\(data:(image/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=\s]+)\)"
+)
+_MIME_EXTENSIONS = {
+    "image/png": ".png",
+    "image/jpeg": ".jpg",
+    "image/jpg": ".jpg",
+    "image/gif": ".gif",
+    "image/webp": ".webp",
+}
 
 
 def _safe_stem(filename: str) -> str:
     stem = Path(filename).stem or "document"
     cleaned = _UNSAFE_CHARS.sub("_", stem).strip("._") or "document"
     return cleaned[:80]
+
+
+def _materialize_data_uri_images(markdown: str, assets_dir: Path, link_prefix: str) -> str:
+    """Write inline images to files so MkDocs pages stay small enough to rebuild."""
+    counter = 0
+
+    def replace(match: re.Match[str]) -> str:
+        nonlocal counter
+        alt, mime, encoded = match.group(1), match.group(2).lower(), match.group(3)
+        try:
+            payload = base64.b64decode(encoded, validate=False)
+        except Exception:
+            return match.group(0)
+        if not payload:
+            return match.group(0)
+        counter += 1
+        extension = _MIME_EXTENSIONS.get(mime) or mimetypes.guess_extension(mime) or ".bin"
+        if extension == ".jpe":
+            extension = ".jpg"
+        assets_dir.mkdir(parents=True, exist_ok=True)
+        filename = f"image-{counter}{extension}"
+        (assets_dir / filename).write_bytes(payload)
+        return f"![{alt}]({link_prefix}/{filename})"
+
+    return _DATA_URI_IMAGE.sub(replace, markdown)
 
 
 _INDEX_LINK_LINE = re.compile(r"^- \[.*\]\(.*\)\s*$")
@@ -89,6 +127,7 @@ def publish_to_mkdocs(filename: str, content: bytes, markdown: str, *, site_root
     stem = _safe_stem(filename)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     slug = f"{stem}-{timestamp}"
+    markdown = _materialize_data_uri_images(markdown, markdown_dir / "assets" / slug, f"assets/{slug}")
 
     markdown_name = f"{slug}.md"
     backup_name = f"{slug}{extension}"
@@ -123,6 +162,9 @@ def delete_published_documents(filenames: list[str], *, site_root: Path | None =
             continue
         if markdown_path.is_file():
             markdown_path.unlink()
+        assets_dir = markdown_dir / "assets" / slug
+        if assets_dir.is_dir():
+            shutil.rmtree(assets_dir)
         for backup in backups_dir.glob(f"{slug}.*"):
             if backup.suffix.lower() in _ALLOWED_EXTENSIONS and backup.is_file():
                 backup.unlink()

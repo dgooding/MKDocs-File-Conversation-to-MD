@@ -5,6 +5,10 @@ from fastapi.testclient import TestClient
 from docs_to_markdown.api import app
 from docs_to_markdown.mkdocs_publish import _safe_stem, delete_published_documents, publish_to_mkdocs
 
+TINY_PNG = (
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+)
+
 
 client = TestClient(app)
 
@@ -151,6 +155,57 @@ def test_api_publish_endpoint_writes_files(monkeypatch, tmp_path: Path) -> None:
     assert body["backup_file"].endswith(".docx")
     assert (tmp_path / "docs" / "markdown" / body["markdown_file"]).exists()
     assert (tmp_path / "docs" / "backups" / body["backup_file"]).exists()
+
+
+def test_publish_extracts_data_uri_images_to_files(tmp_path: Path) -> None:
+    (tmp_path / "docs" / "markdown").mkdir(parents=True)
+    (tmp_path / "docs" / "backups").mkdir(parents=True)
+    markdown = f"# Report\n\n![Image from page 1](data:image/png;base64,{TINY_PNG})\n"
+
+    result = publish_to_mkdocs("report.pdf", b"pdf", markdown, site_root=tmp_path)
+
+    written = (tmp_path / "docs" / "markdown" / result["markdown_file"]).read_text(encoding="utf-8")
+    assert "data:image" not in written
+    assert f"assets/{result['slug']}/" in written
+    images = list((tmp_path / "docs" / "markdown" / "assets" / result["slug"]).glob("*.png"))
+    assert len(images) == 1
+    assert images[0].read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+
+
+def test_delete_published_documents_removes_extracted_images(tmp_path: Path) -> None:
+    (tmp_path / "docs" / "markdown").mkdir(parents=True)
+    (tmp_path / "docs" / "backups").mkdir(parents=True)
+    markdown = f"# Report\n\n![page](data:image/png;base64,{TINY_PNG})\n"
+    result = publish_to_mkdocs("report.pdf", b"pdf", markdown, site_root=tmp_path)
+    assets_dir = tmp_path / "docs" / "markdown" / "assets" / result["slug"]
+    assert assets_dir.is_dir()
+
+    assert delete_published_documents([result["markdown_file"]], site_root=tmp_path) == 1
+    assert not assets_dir.exists()
+
+
+def test_api_publish_returns_even_if_mkdocs_rebuild_fails(monkeypatch, tmp_path: Path) -> None:
+    (tmp_path / "docs" / "markdown").mkdir(parents=True)
+    (tmp_path / "docs" / "backups").mkdir(parents=True)
+
+    import docs_to_markdown.api as api_module
+    import docs_to_markdown.mkdocs_publish as mkdocs_publish
+
+    monkeypatch.setattr(mkdocs_publish, "MKDOCS_SITE_ROOT", tmp_path)
+
+    def boom(*_args, **_kwargs):
+        raise RuntimeError("rebuild failed")
+
+    monkeypatch.setattr(api_module, "build_mkdocs_site", boom)
+
+    response = client.post(
+        "/api/publish",
+        files={"file": ("proof.docx", b"docx bytes", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")},
+        data={"markdown": "# Proof\n\nHello."},
+    )
+
+    assert response.status_code == 200
+    assert (tmp_path / "docs" / "markdown" / response.json()["markdown_file"]).exists()
 
 
 def test_api_publish_rejects_unsupported_extension(monkeypatch, tmp_path: Path) -> None:

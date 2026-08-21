@@ -1,6 +1,8 @@
+import logging
+import threading
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -16,7 +18,19 @@ app = FastAPI(title="Documents to Markdown")
 STATIC_DIR = Path(__file__).with_name("static")
 MAX_BATCH_FILES = 25
 MAX_BATCH_BYTES = 100 * 1024 * 1024
+logger = logging.getLogger(__name__)
+_rebuild_lock = threading.Lock()
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+def _rebuild_library_site() -> None:
+    with _rebuild_lock:
+        try:
+            build_mkdocs_site()
+        except ModuleNotFoundError:
+            logger.warning("MkDocs is not installed; library files were written but the site was not rebuilt")
+        except Exception:
+            logger.exception("MkDocs library rebuild failed")
 
 
 def _mount_library_assets() -> None:
@@ -111,8 +125,12 @@ async def convert(file: UploadFile = File(...)) -> dict[str, str]:
 
 
 @app.post("/api/publish")
-async def publish(file: UploadFile = File(...), markdown: str = Form(...)) -> dict[str, str]:
-    # Test-only: publishes a conversion + its source file into the local mkdocs-site search sandbox.
+async def publish(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    markdown: str = Form(...),
+) -> dict[str, str]:
+    # Publishes a conversion + its source file into the local mkdocs-site search sandbox.
     content = await file.read()
     try:
         result = publish_to_mkdocs(file.filename or "document", content, markdown)
@@ -120,10 +138,9 @@ async def publish(file: UploadFile = File(...), markdown: str = Form(...)) -> di
         raise HTTPException(status_code=503, detail=str(error)) from error
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
-    try:
-        build_mkdocs_site()
-    except ModuleNotFoundError as error:
-        raise HTTPException(status_code=503, detail="MkDocs is not installed; install the site extra") from error
+    except OSError as error:
+        raise HTTPException(status_code=503, detail="Library could not be written") from error
+    background_tasks.add_task(_rebuild_library_site)
     return result
 
 
@@ -151,7 +168,7 @@ async def convert_files(files: list[UploadFile] = File(...)) -> StreamingRespons
 
 
 @app.post("/api/publish/batch")
-async def publish_batch(files: list[UploadFile] = File(...)) -> dict[str, object]:
+async def publish_batch(background_tasks: BackgroundTasks, files: list[UploadFile] = File(...)) -> dict[str, object]:
     if len(files) > MAX_BATCH_FILES:
         raise HTTPException(status_code=400, detail=f"A batch can contain at most {MAX_BATCH_FILES} files")
 
@@ -174,24 +191,19 @@ async def publish_batch(files: list[UploadFile] = File(...)) -> dict[str, object
         except Exception as error:
             raise HTTPException(status_code=422, detail=f"Could not publish {filename}") from error
 
-    try:
-        build_mkdocs_site()
-    except ModuleNotFoundError as error:
-        raise HTTPException(status_code=503, detail="MkDocs is not installed; install the site extra") from error
+    background_tasks.add_task(_rebuild_library_site)
     return {"published": published, "count": len(published)}
 
 
 @app.post("/api/published/delete")
-async def delete_published(request: DeletePublishedRequest) -> dict[str, int]:
+async def delete_published(request: DeletePublishedRequest, background_tasks: BackgroundTasks) -> dict[str, int]:
     if not request.filenames:
         raise HTTPException(status_code=400, detail="Select at least one document")
     try:
         removed = delete_published_documents(request.filenames)
-        build_mkdocs_site()
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
-    except ModuleNotFoundError as error:
-        raise HTTPException(status_code=503, detail="MkDocs is not installed; install the site extra") from error
+    background_tasks.add_task(_rebuild_library_site)
     return {"removed": removed}
 
 

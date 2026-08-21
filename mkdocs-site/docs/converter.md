@@ -23,7 +23,7 @@
 
   <div class="converter-actions">
     <button id="library-download" type="button" disabled>Download Markdown</button>
-    <button id="library-publish" type="button" disabled>Upload to library</button>
+    <button id="library-publish" type="button">Upload to library</button>
   </div>
 
   <div class="converter-workspace">

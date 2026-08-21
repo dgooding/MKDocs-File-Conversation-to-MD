@@ -129,7 +129,11 @@ publish.addEventListener("click", async () => {
     const response = await fetch("/api/publish/batch", { method: "POST", body: formData });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(result.detail || "Batch upload failed.");
+      const detail = result.detail;
+      const message = typeof detail === "string" ? detail
+        : Array.isArray(detail) ? detail.map((item) => (item && item.msg) || "").filter(Boolean).join(" ")
+        : "";
+      throw new Error(message || "Batch upload failed.");
     }
     status.textContent = `Uploaded ${result.count} document${result.count === 1 ? "" : "s"}. Opening MkDocs...`;
     window.location.href = "/mkdocs/markdown/";

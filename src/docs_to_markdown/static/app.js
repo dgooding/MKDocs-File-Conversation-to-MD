@@ -22,6 +22,41 @@ function setStatus(message, tone) {
   status.className = `status-${tone}`;
 }
 
+function apiError(result, fallback) {
+  const detail = result && result.detail;
+  if (typeof detail === "string" && detail.trim()) {
+    return detail;
+  }
+  if (Array.isArray(detail)) {
+    const parts = detail.map((item) => (item && item.msg) || "").filter(Boolean);
+    if (parts.length) {
+      return parts.join(" ");
+    }
+  }
+  return fallback;
+}
+
+async function waitForPublishedPage(slug) {
+  const url = `/mkdocs/markdown/${encodeURIComponent(slug)}/`;
+  const started = Date.now();
+  for (;;) {
+    const elapsed = Math.floor((Date.now() - started) / 1000);
+    setStatus(`Uploaded as "${slug}". Building library page… ${formatSeconds(elapsed)}`, "info");
+    try {
+      const response = await fetch(url, { method: "HEAD", cache: "no-store" });
+      if (response.ok) {
+        return url;
+      }
+    } catch (_error) {
+      // Rebuild is still in progress.
+    }
+    if (elapsed >= 90) {
+      throw new Error(`Uploaded as "${slug}", but the library page is still building. Open Documents in a few seconds.`);
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 1000));
+  }
+}
+
 function estimateSeconds(file) {
   const megabytes = file.size / (1024 * 1024);
   return Math.max(8, Math.min(180, Math.round(10 + megabytes * 10)));
@@ -92,9 +127,9 @@ form.addEventListener("submit", async (event) => {
       method: "POST",
       body: formData,
     });
-    const result = await response.json();
+    const result = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(result.detail || "Conversion failed.");
+      throw new Error(apiError(result, "Conversion failed."));
     }
 
     markdown.value = result.markdown;
@@ -134,7 +169,7 @@ download.addEventListener("click", () => {
 });
 
 publish.addEventListener("click", async () => {
-  if (!lastConvertedFile) {
+  if (!lastConvertedFile || !markdown.value.trim()) {
     setStatus("Convert a file before publishing.", "error");
     return;
   }
@@ -143,20 +178,23 @@ publish.addEventListener("click", async () => {
   formData.append("file", lastConvertedFile);
   formData.append("markdown", markdown.value);
   setStatus("Uploading to MkDocs...", "info");
+  publish.disabled = true;
 
   try {
     const response = await fetch("/api/publish", {
       method: "POST",
       body: formData,
     });
-    const result = await response.json();
+    const result = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(result.detail || "Publish failed.");
+      throw new Error(apiError(result, "Publish failed."));
     }
-    const publishedUrl = `/mkdocs/markdown/${encodeURIComponent(result.slug)}/`;
+    const publishedUrl = await waitForPublishedPage(result.slug);
     setStatus(`Uploaded as "${result.slug}". Opening MkDocs...`, "success");
     window.open(publishedUrl, "_blank", "noopener");
   } catch (error) {
     setStatus(error instanceof Error ? error.message : "Publish failed.", "error");
+  } finally {
+    publish.disabled = false;
   }
 });

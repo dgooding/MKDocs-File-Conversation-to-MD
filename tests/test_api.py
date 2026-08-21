@@ -72,6 +72,25 @@ def test_serves_upload_page_script() -> None:
     assert "Approximate timing only" not in response.text
     assert "estimateSeconds" in response.text
     assert "/mkdocs/markdown/" in response.text
+    assert "Convert a file before publishing." in response.text
+    assert "item.msg" in response.text
+    assert "Building library page" in response.text
+
+
+def test_library_converter_script_explains_upload_failures() -> None:
+    from pathlib import Path
+
+    script = (
+        Path(__file__).resolve().parents[1] / "mkdocs-site" / "docs" / "javascripts" / "converter.js"
+    ).read_text(encoding="utf-8")
+    converter_page = (
+        Path(__file__).resolve().parents[1] / "mkdocs-site" / "docs" / "converter.md"
+    ).read_text(encoding="utf-8")
+
+    assert "Convert a document before uploading it to the library." in script
+    assert "item.msg" in script
+    assert "Building library page" in script
+    assert 'id="library-publish" type="button" disabled>' not in converter_page
 
 
 def test_serves_responsive_preview_styles() -> None:
