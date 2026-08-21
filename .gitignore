@@ -26,6 +26,12 @@ mkdocs-site/docs/markdown/*
 mkdocs-site/docs/backups/*
 !mkdocs-site/docs/markdown/index.md
 !mkdocs-site/docs/backups/index.md
+!mkdocs-site/docs/markdown/CHG-*.md
+!mkdocs-site/docs/markdown/INC-*.md
+!mkdocs-site/docs/markdown/REQ-*.md
+!mkdocs-site/docs/backups/CHG-*
+!mkdocs-site/docs/backups/INC-*
+!mkdocs-site/docs/backups/REQ-*
 mkdocs-site/site/
 
 # Editor and operating-system files
