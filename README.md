@@ -38,7 +38,8 @@ To stop the app, close the launcher window or press `Ctrl+C` in that window.
 The live tester instance is hosted on Sean’s Ubuntu 24.04 Oracle VM (`linux2`).
 Full deploy, SSH, Docker, ports, and verification notes:
 
-**[Linux2 Oracle Cloud Hosting Runbook](docs/linux2-oracle-hosting-runbook.md)**
+**[Linux2 Oracle Cloud Hosting Runbook](docs/linux2-oracle-hosting-runbook.md)** ·
+**[PDF](docs/linux2-oracle-hosting-runbook.pdf)**
 
 Ask Sean for the current host IP. Do not publish that address in this repository.
 
